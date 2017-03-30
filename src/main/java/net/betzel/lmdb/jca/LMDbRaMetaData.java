@@ -1,0 +1,124 @@
+/*
+    Copyright 2017 Maurice Betzel
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ */
+package net.betzel.lmdb.jca;
+
+import javax.resource.cci.ResourceAdapterMetaData;
+
+/**
+ * LMDbRaMetaData
+ *
+ * @version $Revision: $
+ */
+public class LMDbRaMetaData implements ResourceAdapterMetaData {
+    /**
+     * Default constructor
+     */
+    public LMDbRaMetaData() {
+
+    }
+
+    /**
+     * Gets the version of the resource adapter.
+     *
+     * @return String representing version of the resource adapter
+     */
+    @Override
+    public String getAdapterVersion() {
+        return null; //TODO
+    }
+
+    /**
+     * Gets the name of the vendor that has provided the resource adapter.
+     *
+     * @return String representing name of the vendor
+     */
+    @Override
+    public String getAdapterVendorName() {
+        return null; //TODO
+    }
+
+    /**
+     * Gets a tool displayable name of the resource adapter.
+     *
+     * @return String representing the name of the resource adapter
+     */
+    @Override
+    public String getAdapterName() {
+        return null; //TODO
+    }
+
+    /**
+     * Gets a tool displayable short desription of the resource adapter.
+     *
+     * @return String describing the resource adapter
+     */
+    @Override
+    public String getAdapterShortDescription() {
+        return null; //TODO
+    }
+
+    /**
+     * Returns a string representation of the version
+     *
+     * @return String representing the supported version of the connector architecture
+     */
+    @Override
+    public String getSpecVersion() {
+        return null; //TODO
+    }
+
+    /**
+     * Returns an array of fully-qualified names of InteractionSpec
+     *
+     * @return Array of fully-qualified class names of InteractionSpec classes
+     */
+    @Override
+    public String[] getInteractionSpecsSupported() {
+        return null; //TODO
+    }
+
+    /**
+     * Returns true if the implementation class for the Interaction
+     *
+     * @return boolean Depending on method support
+     */
+    @Override
+    public boolean supportsExecuteWithInputAndOutputRecord() {
+        return false; //TODO
+    }
+
+    /**
+     * Returns true if the implementation class for the Interaction
+     *
+     * @return boolean Depending on method support
+     */
+    @Override
+    public boolean supportsExecuteWithInputRecordOnly() {
+        return false; //TODO
+    }
+
+    /**
+     * Returns true if the resource adapter implements the LocalTransaction
+     *
+     * @return true If resource adapter supports resource manager local transaction demarcation
+     */
+    @Override
+    public boolean supportsLocalTransactionDemarcation() {
+        return false; //TODO
+    }
+
+
+}

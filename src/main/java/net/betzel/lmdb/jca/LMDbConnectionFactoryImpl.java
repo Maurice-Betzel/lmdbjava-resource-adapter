@@ -1,0 +1,111 @@
+/*
+    Copyright 2017 Maurice Betzel
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ */
+package net.betzel.lmdb.jca;
+
+import java.util.logging.Logger;
+
+import javax.naming.NamingException;
+import javax.naming.Reference;
+
+import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionManager;
+
+/**
+ * LMDbConnectionFactoryImpl
+ *
+ * @version $Revision: $
+ */
+public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
+    /**
+     * The serial version UID
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * The logger
+     */
+    private static Logger log = Logger.getLogger(LMDbConnectionFactoryImpl.class.getName());
+
+    /**
+     * Reference
+     */
+    private Reference reference;
+
+    /**
+     * ManagedConnectionFactory
+     */
+    private LMDbManagedConnectionFactory mcf;
+
+    /**
+     * ConnectionManager
+     */
+    private ConnectionManager connectionManager;
+
+    /**
+     * Default constructor
+     */
+    public LMDbConnectionFactoryImpl() {
+
+    }
+
+    /**
+     * Default constructor
+     *
+     * @param mcf       ManagedConnectionFactory
+     * @param cxManager ConnectionManager
+     */
+    public LMDbConnectionFactoryImpl(LMDbManagedConnectionFactory mcf, ConnectionManager cxManager) {
+        this.mcf = mcf;
+        this.connectionManager = cxManager;
+    }
+
+    /**
+     * Get connection from factory
+     *
+     * @return LMDbConnection instance
+     * @throws ResourceException Thrown if a connection can't be obtained
+     */
+    @Override
+    public LMDbConnection getConnection() throws ResourceException {
+        log.finest("getConnection()");
+        return (LMDbConnection) connectionManager.allocateConnection(mcf, null);
+    }
+
+    /**
+     * Get the Reference instance.
+     *
+     * @return Reference instance
+     * @throws NamingException Thrown if a reference can't be obtained
+     */
+    @Override
+    public Reference getReference() throws NamingException {
+        log.finest("getReference()");
+        return reference;
+    }
+
+    /**
+     * Set the Reference instance.
+     *
+     * @param reference A Reference instance
+     */
+    @Override
+    public void setReference(Reference reference) {
+        log.finest("setReference()");
+        this.reference = reference;
+    }
+
+
+}
