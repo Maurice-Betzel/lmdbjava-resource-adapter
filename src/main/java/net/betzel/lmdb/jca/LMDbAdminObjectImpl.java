@@ -38,7 +38,7 @@ public class LMDbAdminObjectImpl implements LMDbAdminObject, ResourceAdapterAsso
     /**
      * The resource adapter
      */
-    private ResourceAdapter ra;
+    private ResourceAdapter resourceAdapter;
 
     /**
      * Reference
@@ -58,16 +58,16 @@ public class LMDbAdminObjectImpl implements LMDbAdminObject, ResourceAdapterAsso
      * @return The handle
      */
     public ResourceAdapter getResourceAdapter() {
-        return ra;
+        return resourceAdapter;
     }
 
     /**
      * Set the resource adapter
      *
-     * @param ra The handle
+     * @param resourceAdapter The handle
      */
-    public void setResourceAdapter(ResourceAdapter ra) {
-        this.ra = ra;
+    public void setResourceAdapter(ResourceAdapter resourceAdapter) {
+        this.resourceAdapter = resourceAdapter;
     }
 
     /**

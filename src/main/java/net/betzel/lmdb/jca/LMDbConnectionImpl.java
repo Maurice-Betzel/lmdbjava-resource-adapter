@@ -31,39 +31,39 @@ public class LMDbConnectionImpl implements LMDbConnection {
     /**
      * ManagedConnection
      */
-    private LMDbManagedConnection mc;
+    private LMDbManagedConnection managedConnection;
 
     /**
      * ManagedConnectionFactory
      */
-    private LMDbManagedConnectionFactory mcf;
+    private LMDbManagedConnectionFactory managedConnectionFactory;
 
     /**
      * Default constructor
      *
-     * @param mc  LMDbManagedConnection
-     * @param mcf LMDbManagedConnectionFactory
+     * @param managedConnection  LMDbManagedConnection
+     * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
-    public LMDbConnectionImpl(LMDbManagedConnection mc, LMDbManagedConnectionFactory mcf) {
-        this.mc = mc;
-        this.mcf = mcf;
+    public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
+        this.managedConnection = managedConnection;
+        this.managedConnectionFactory = managedConnectionFactory;
     }
 
     /**
      * Call me
      */
     public void callMe() {
-        if (mc != null)
-            mc.callMe();
+        if (managedConnection != null)
+            managedConnection.callMe();
     }
 
     /**
      * Close
      */
     public void close() {
-        if (mc != null) {
-            mc.closeHandle(this);
-            mc = null;
+        if (managedConnection != null) {
+            managedConnection.closeHandle(this);
+            managedConnection = null;
         }
 
     }
@@ -71,8 +71,8 @@ public class LMDbConnectionImpl implements LMDbConnection {
     /**
      * Set ManagedConnection
      */
-    void setManagedConnection(LMDbManagedConnection mc) {
-        this.mc = mc;
+    void setManagedConnection(LMDbManagedConnection managedConnection) {
+        this.managedConnection = managedConnection;
     }
 
 }

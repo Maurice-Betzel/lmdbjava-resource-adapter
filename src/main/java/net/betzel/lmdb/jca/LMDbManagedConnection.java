@@ -52,7 +52,7 @@ public class LMDbManagedConnection implements ManagedConnection {
     /**
      * ManagedConnectionFactory
      */
-    private LMDbManagedConnectionFactory mcf;
+    private LMDbManagedConnectionFactory managedConnectionFactory;
 
     /**
      * Listeners
@@ -67,10 +67,10 @@ public class LMDbManagedConnection implements ManagedConnection {
     /**
      * Default constructor
      *
-     * @param mcf mcf
+     * @param managedConnectionFactory managedConnectionFactory
      */
-    public LMDbManagedConnection(LMDbManagedConnectionFactory mcf) {
-        this.mcf = mcf;
+    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory) {
+        this.managedConnectionFactory = managedConnectionFactory;
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
         this.connections = new HashSet<LMDbConnectionImpl>();
@@ -85,10 +85,9 @@ public class LMDbManagedConnection implements ManagedConnection {
      * @return generic Object instance representing the connection handle.
      * @throws ResourceException generic exception if operation fails
      */
-    public Object getConnection(Subject subject,
-                                ConnectionRequestInfo cxRequestInfo) throws ResourceException {
+    public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
-        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, mcf);
+        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory);
         connections.add(connection);
         return connection;
     }
@@ -237,7 +236,6 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     void callMe() {
         log.finest("callMe()");
-
     }
 
 }

@@ -56,7 +56,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
     /**
      * The resource adapter
      */
-    private ResourceAdapter ra;
+    private ResourceAdapter resourceAdapter;
 
     /**
      * The logwriter
@@ -100,8 +100,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      * @return ManagedConnection instance
      * @throws ResourceException generic exception
      */
-    public ManagedConnection createManagedConnection(Subject subject,
-                                                     ConnectionRequestInfo cxRequestInfo) throws ResourceException {
+    public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("createManagedConnection()");
         return new LMDbManagedConnection(this);
     }
@@ -115,8 +114,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      * @return ManagedConnection if resource adapter finds an acceptable match otherwise null
      * @throws ResourceException generic exception
      */
-    public ManagedConnection matchManagedConnections(Set connectionSet,
-                                                     Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
+    public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("matchManagedConnections()");
         ManagedConnection result = null;
         Iterator it = connectionSet.iterator();
@@ -159,17 +157,17 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     public ResourceAdapter getResourceAdapter() {
         log.finest("getResourceAdapter()");
-        return ra;
+        return resourceAdapter;
     }
 
     /**
      * Set the resource adapter
      *
-     * @param ra The handle
+     * @param resourceAdapter The handle
      */
-    public void setResourceAdapter(ResourceAdapter ra) {
+    public void setResourceAdapter(ResourceAdapter resourceAdapter) {
         log.finest("setResourceAdapter()");
-        this.ra = ra;
+        this.resourceAdapter = resourceAdapter;
     }
 
     /**

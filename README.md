@@ -1,9 +1,12 @@
-##LMDb JCA Resource Adapter
+## LMDb JCA Resource Adapter
 
 A JCA 1.7 standard resource provider for [lmdbjava](https://github.com/lmdbjava/lmdbjava).
 
-The resource adapter plugs into any JavaEE implementation and provides connectivity, security and transactions
-between lmdbjava, the JavaEE implementation, and the consuming application.
+This resource adapter plugs into any JavaEE implementation and provides connectivity, security and transactions
+between lmdbjava, the JavaEE implementation, and the consuming application. It is implemented as a passive library,
+only supporting outbound communication. Therefore all interactions are executed in the context of the application thread.
+
+
 
 ### License
 

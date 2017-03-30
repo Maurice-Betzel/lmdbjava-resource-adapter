@@ -29,14 +29,9 @@ import javax.resource.spi.ConnectionManager;
  * @version $Revision: $
  */
 public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
-    /**
-     * The serial version UID
-     */
+
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The logger
-     */
     private static Logger log = Logger.getLogger(LMDbConnectionFactoryImpl.class.getName());
 
     /**
@@ -47,7 +42,7 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
     /**
      * ManagedConnectionFactory
      */
-    private LMDbManagedConnectionFactory mcf;
+    private LMDbManagedConnectionFactory managedConnectionFactory;
 
     /**
      * ConnectionManager
@@ -64,11 +59,11 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
     /**
      * Default constructor
      *
-     * @param mcf       ManagedConnectionFactory
+     * @param managedConnectionFactory       ManagedConnectionFactory
      * @param cxManager ConnectionManager
      */
-    public LMDbConnectionFactoryImpl(LMDbManagedConnectionFactory mcf, ConnectionManager cxManager) {
-        this.mcf = mcf;
+    public LMDbConnectionFactoryImpl(LMDbManagedConnectionFactory managedConnectionFactory, ConnectionManager cxManager) {
+        this.managedConnectionFactory = managedConnectionFactory;
         this.connectionManager = cxManager;
     }
 
@@ -81,7 +76,7 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
     @Override
     public LMDbConnection getConnection() throws ResourceException {
         log.finest("getConnection()");
-        return (LMDbConnection) connectionManager.allocateConnection(mcf, null);
+        return (LMDbConnection) connectionManager.allocateConnection(managedConnectionFactory, null);
     }
 
     /**

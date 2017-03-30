@@ -14,29 +14,34 @@
     limitations under the License.
 -->
 
+<!--
+  The IronJacamar standalone and embedded distributions do not support
+  annotations for connection factories and administration objects
+-->
+
 <ironjacamar xmlns="http://www.ironjacamar.org/doc/schema"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://www.ironjacamar.org/doc/schema 
              http://www.ironjacamar.org/doc/schema/ironjacamar_1_1.xsd">
-  <config-property name="lmdbjavaDisableExtract">false</config-property>
-  <config-property name="lmdbjavaNativeLibPath"></config-property>
+    <config-property name="lmdbjavaDisableExtract">false</config-property>
+    <config-property name="lmdbjavaNativeLibPath"></config-property>
 
-  <transaction-support>XATransaction</transaction-support>
-  
-  <connection-definitions>
-    <connection-definition class-name="net.betzel.lmdb.jca.LMDbManagedConnectionFactory" jndi-name="java:/eis/LMDbConnectionFactory" pool-name="LMDbConnectionFactory">
-      <recovery>
-        <recover-credential>
-          <user-name>user</user-name>
-          <password>password</password>
-        </recover-credential>
-      </recovery>
-    </connection-definition>
-  </connection-definitions>
+    <transaction-support>XATransaction</transaction-support>
 
-  <admin-objects>
-    <admin-object class-name="net.betzel.lmdb.jca.LMDbAdminObjectImpl" jndi-name="java:/eis/ao/LMDbAdminObject">
-    </admin-object>
-  </admin-objects>
+    <connection-definitions>
+        <connection-definition class-name="net.betzel.lmdb.jca.LMDbManagedConnectionFactory" jndi-name="java:/eis/LMDbConnectionFactory" pool-name="LMDbConnectionFactory">
+            <recovery>
+                <recover-credential>
+                    <user-name>user</user-name>
+                    <password>password</password>
+                </recover-credential>
+            </recovery>
+        </connection-definition>
+    </connection-definitions>
+
+    <admin-objects>
+        <admin-object class-name="net.betzel.lmdb.jca.LMDbAdminObjectImpl" jndi-name="java:/eis/ao/LMDbAdminObject">
+        </admin-object>
+    </admin-objects>
 
 </ironjacamar>

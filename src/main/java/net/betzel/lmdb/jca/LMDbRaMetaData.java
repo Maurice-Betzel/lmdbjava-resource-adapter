@@ -15,6 +15,9 @@
  */
 package net.betzel.lmdb.jca;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import javax.resource.cci.ResourceAdapterMetaData;
 
 /**
@@ -23,6 +26,23 @@ import javax.resource.cci.ResourceAdapterMetaData;
  * @version $Revision: $
  */
 public class LMDbRaMetaData implements ResourceAdapterMetaData {
+
+    private static final Properties PROPERTIES = new Properties();
+    private static final String PROPERTIES_FILE = "net.betzel.lmdb.jca.properties";
+    private static final String ADAPTER_NAME = "lmdb.ra.name";
+    private static final String ADAPTER_VENDOR = "lmdb.ra.vendor";
+    private static final String ADAPTER_VERSION = "lmdb.ra.version";
+    private static final String ADAPTER_DESCRIPTION = "lmdb.ra.description";
+    private static final String ADAPTER_JCA_VERSION = "lmdb.jca.version";
+
+    static {
+        try (InputStream inputStream = LMDbRaMetaData.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
+            PROPERTIES.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Default constructor
      */
@@ -37,7 +57,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
      */
     @Override
     public String getAdapterVersion() {
-        return null; //TODO
+        return PROPERTIES.getProperty(ADAPTER_VERSION);
     }
 
     /**
@@ -47,7 +67,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
      */
     @Override
     public String getAdapterVendorName() {
-        return null; //TODO
+        return PROPERTIES.getProperty(ADAPTER_VENDOR);
     }
 
     /**
@@ -57,7 +77,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
      */
     @Override
     public String getAdapterName() {
-        return null; //TODO
+        return PROPERTIES.getProperty(ADAPTER_NAME);
     }
 
     /**
@@ -67,7 +87,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
      */
     @Override
     public String getAdapterShortDescription() {
-        return null; //TODO
+        return PROPERTIES.getProperty(ADAPTER_DESCRIPTION);
     }
 
     /**
@@ -77,7 +97,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
      */
     @Override
     public String getSpecVersion() {
-        return null; //TODO
+        return PROPERTIES.getProperty(ADAPTER_JCA_VERSION);
     }
 
     /**
