@@ -15,19 +15,54 @@
  */
 package net.betzel.lmdb.jca;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import org.lmdbjava.Cursor;
+import org.lmdbjava.CursorIterator;
+import org.lmdbjava.Dbi;
+import org.lmdbjava.PutFlags;
+import org.lmdbjava.Stat;
+
 /**
  * LMDbConnection
+ * <p>
+ * Equals a Dbi
  *
  * @version $Revision: $
  */
-public interface LMDbConnection {
-    /**
-     * Call me
-     */
-    public void callMe();
+public interface LMDbConnection<T> extends AutoCloseable {
 
-    /**
-     * Close
-     */
+    //dbi
+
+    public boolean delete(final T key);
+
+    public boolean delete(final T key, final T value);
+
+    public void clear(); //drop
+
+    public T get(final T key);
+
+    public String getName();
+
+    public CursorIterator<T> iterate();
+
+    public CursorIterator<T> iterate(final T key, final CursorIterator.IteratorType type);
+
+    public Cursor<T> openCursor();
+
+    public void put(final T key, final T val);
+
+    public boolean put(final T key, final T val, final PutFlags... flags);
+
+    public T reserve(final T key, final int size, final PutFlags... op);
+
+    public Stat stat();
+
+    //env
+
+    public Dbi<ByteBuffer> open(String databaseName) throws IOException;
+
+    @Override
     public void close();
+
 }

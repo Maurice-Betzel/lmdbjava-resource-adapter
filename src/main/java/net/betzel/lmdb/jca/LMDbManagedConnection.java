@@ -31,13 +31,14 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionMetaData;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
+import org.lmdbjava.Env;
 
 /**
  * LMDbManagedConnection
  *
  * @version $Revision: $
  */
-public class LMDbManagedConnection implements ManagedConnection {
+public class LMDbManagedConnection<T> implements ManagedConnection {
 
     /**
      * The logger
@@ -63,6 +64,11 @@ public class LMDbManagedConnection implements ManagedConnection {
      * Connections
      */
     private Set<LMDbConnectionImpl> connections;
+
+    /**
+     * The lmdb environment
+     */
+    private Env<T>env;
 
     /**
      * Default constructor
@@ -231,11 +237,8 @@ public class LMDbManagedConnection implements ManagedConnection {
         return new LMDbManagedConnectionMetaData();
     }
 
-    /**
-     * Call me
-     */
-    void callMe() {
-        log.finest("callMe()");
-    }
+    //lmdbjava specific
+
+
 
 }

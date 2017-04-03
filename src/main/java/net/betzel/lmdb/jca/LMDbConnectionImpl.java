@@ -15,14 +15,20 @@
  */
 package net.betzel.lmdb.jca;
 
+import java.nio.ByteBuffer;
 import java.util.logging.Logger;
+import org.lmdbjava.Cursor;
+import org.lmdbjava.CursorIterator;
+import org.lmdbjava.Dbi;
+import org.lmdbjava.PutFlags;
+import org.lmdbjava.Stat;
 
 /**
  * LMDbConnectionImpl
  *
  * @version $Revision: $
  */
-public class LMDbConnectionImpl implements LMDbConnection {
+public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
     /**
      * The logger
      */
@@ -41,7 +47,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
     /**
      * Default constructor
      *
-     * @param managedConnection  LMDbManagedConnection
+     * @param managedConnection        LMDbManagedConnection
      * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
     public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
@@ -49,23 +55,78 @@ public class LMDbConnectionImpl implements LMDbConnection {
         this.managedConnectionFactory = managedConnectionFactory;
     }
 
-    /**
-     * Call me
-     */
-    public void callMe() {
-        if (managedConnection != null)
-            managedConnection.callMe();
+    @Override
+    public boolean delete(T key) {
+        return false;
     }
 
-    /**
-     * Close
-     */
+    @Override
+    public boolean delete(T key, T value) {
+        return false;
+    }
+
+    @Override
+    public void clear() {
+
+    }
+
+    @Override
+    public T get(T key) {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public CursorIterator<T> iterate() {
+        return null;
+    }
+
+    @Override
+    public CursorIterator<T> iterate(T key, CursorIterator.IteratorType type) {
+        return null;
+    }
+
+    @Override
+    public Cursor openCursor() {
+        return null;
+    }
+
+    @Override
+    public void put(T key, T val) {
+
+    }
+
+    @Override
+    public boolean put(T key, T val, PutFlags... flags) {
+        return false;
+    }
+
+    @Override
+    public T reserve(T key, int size, PutFlags... op) {
+        return null;
+    }
+
+    @Override
+    public Stat stat() {
+        return null;
+    }
+
+    @Override
+    public Dbi<ByteBuffer> open(String databaseName) {
+        //return managedConnection create(12, maxDatabaseSize, databaseFileName, databaseDirectory, proxy);
+        return null;
+    }
+
+    @Override
     public void close() {
         if (managedConnection != null) {
             managedConnection.closeHandle(this);
             managedConnection = null;
         }
-
     }
 
     /**

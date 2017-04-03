@@ -102,5 +102,4 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
         this.reference = reference;
     }
 
-
 }

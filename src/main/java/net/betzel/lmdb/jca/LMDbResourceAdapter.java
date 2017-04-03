@@ -15,6 +15,9 @@
  */
 package net.betzel.lmdb.jca;
 
+import static java.lang.System.getProperty;
+import static java.lang.System.setProperty;
+import static java.util.Objects.isNull;
 import java.util.logging.Logger;
 
 import javax.resource.ResourceException;
@@ -36,6 +39,10 @@ import javax.transaction.xa.XAResource;
  */
 @Connector(reauthenticationSupport = false, transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction)
 public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializable {
+
+    public static final String DISABLE_EXTRACT_PROP = "lmdbjava.disable.extract";
+
+    public static final String LMDB_NATIVE_LIB_PROP = "lmdbjava.native.lib";
 
     /**
      * The serial version UID
@@ -109,8 +116,7 @@ public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializabl
      * @param spec            An activation spec JavaBean instance.
      * @throws ResourceException generic exception
      */
-    public void endpointActivation(MessageEndpointFactory endpointFactory,
-                                   ActivationSpec spec) throws ResourceException {
+    public void endpointActivation(MessageEndpointFactory endpointFactory, ActivationSpec spec) throws ResourceException {
         log.finest("endpointActivation()");
 
     }
@@ -121,8 +127,7 @@ public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializabl
      * @param endpointFactory A message endpoint factory instance.
      * @param spec            An activation spec JavaBean instance.
      */
-    public void endpointDeactivation(MessageEndpointFactory endpointFactory,
-                                     ActivationSpec spec) {
+    public void endpointDeactivation(MessageEndpointFactory endpointFactory, ActivationSpec spec) {
         log.finest("endpointDeactivation()");
 
     }
@@ -133,10 +138,16 @@ public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializabl
      * @param ctx A bootstrap context containing references
      * @throws ResourceAdapterInternalException indicates bootstrap failure.
      */
-    public void start(BootstrapContext ctx)
-            throws ResourceAdapterInternalException {
+    public void start(BootstrapContext ctx) throws ResourceAdapterInternalException {
         log.finest("start()");
-
+        if(isNull(getProperty(DISABLE_EXTRACT_PROP))) {
+            setProperty("lmdbjava.disable.extract", lmdbjavaDisableExtract.toString());
+        }
+        if(isNull(getProperty(LMDB_NATIVE_LIB_PROP))) {
+            if(!lmdbjavaNativeLibPath.isEmpty()) {
+                setProperty("lmdbjava.disable.extract", lmdbjavaNativeLibPath);
+            }
+        }
     }
 
     /**
@@ -145,7 +156,8 @@ public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializabl
      */
     public void stop() {
         log.finest("stop()");
-
+        System.clearProperty(DISABLE_EXTRACT_PROP);
+        System.clearProperty(LMDB_NATIVE_LIB_PROP);
     }
 
     /**
@@ -155,8 +167,7 @@ public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializabl
      * @return An array of XAResource objects
      * @throws ResourceException generic exception
      */
-    public XAResource[] getXAResources(ActivationSpec[] specs)
-            throws ResourceException {
+    public XAResource[] getXAResources(ActivationSpec[] specs) throws ResourceException {
         log.finest("getXAResources()");
         return null;
     }

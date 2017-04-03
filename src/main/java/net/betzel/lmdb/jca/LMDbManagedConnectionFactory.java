@@ -15,13 +15,20 @@
  */
 package net.betzel.lmdb.jca;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
+import static java.util.Objects.isNull;
 import java.util.Set;
 
 import java.util.logging.Logger;
 
 import javax.resource.ResourceException;
+import javax.resource.spi.ConfigProperty;
 import javax.resource.spi.ConnectionDefinition;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
@@ -31,6 +38,8 @@ import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.ResourceAdapterAssociation;
 
 import javax.security.auth.Subject;
+import org.lmdbjava.Env;
+import static org.lmdbjava.EnvFlags.MDB_NOSUBDIR;
 
 /**
  * LMDbManagedConnectionFactory
@@ -63,11 +72,44 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     private PrintWriter logwriter;
 
+    private Env<ByteBuffer> env;
+
+    @ConfigProperty
+    private String filePath;
+
+    @ConfigProperty(defaultValue = "1048576")
+    private long fileSize;
+
+    @ConfigProperty(defaultValue = "8")
+    private int maxReaders;
+
+    @ConfigProperty(defaultValue = "1")
+    private int maxDatabases;
+
     /**
      * Default constructor
      */
     public LMDbManagedConnectionFactory() {
 
+    }
+
+    private void createIfNotExists() throws ResourceException {
+        if (isNull(env)) {
+            Path path = Paths.get(filePath);
+            Path parentPath = path.getParent();
+            if (Files.notExists(parentPath)) {
+                try {
+                    Files.createDirectories(parentPath);
+                } catch (IOException e) {
+                    throw new ResourceException(e);
+                }
+            } else {
+                if (!Files.isDirectory(parentPath)) {
+                    throw new ResourceException(parentPath.toString() + " is not a directory!");
+                }
+            }
+            this.env = Env.create().setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
+        }
     }
 
     /**
@@ -79,6 +121,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
         log.finest("createConnectionFactory()");
+        createIfNotExists();
         return new LMDbConnectionFactoryImpl(this, cxManager);
     }
 
@@ -170,6 +213,38 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
         this.resourceAdapter = resourceAdapter;
     }
 
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public int getMaxReaders() {
+        return maxReaders;
+    }
+
+    public void setMaxReaders(int maxReaders) {
+        this.maxReaders = maxReaders;
+    }
+
+    public int getMaxDatabases() {
+        return maxDatabases;
+    }
+
+    public void setMaxDatabases(int maxDatabases) {
+        this.maxDatabases = maxDatabases;
+    }
+
     /**
      * Returns a hash code value for the object.
      *
@@ -178,6 +253,13 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
     @Override
     public int hashCode() {
         int result = 17;
+        if (filePath != null)
+            result += 31 * result + 7 * filePath.hashCode();
+        else
+            result += 31 * result + 7;
+        result += 31 * result + 7 * fileSize;
+        result += 31 * result + 7 * maxReaders;
+        result += 31 * result + 7 * maxDatabases;
         return result;
     }
 
@@ -195,7 +277,23 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
             return true;
         if (!(other instanceof LMDbManagedConnectionFactory))
             return false;
+        LMDbManagedConnectionFactory obj = (LMDbManagedConnectionFactory) other;
         boolean result = true;
+        if (result) {
+            if (filePath == null)
+                result = obj.getFilePath() == null;
+            else
+                result = filePath.equals(obj.getFilePath());
+        }
+        if (result) {
+            result = fileSize == obj.getFileSize();
+        }
+        if (result) {
+            result = maxReaders == obj.getMaxReaders();
+        }
+        if (result) {
+            result = maxDatabases == obj.getMaxDatabases();
+        }
         return result;
     }
 
