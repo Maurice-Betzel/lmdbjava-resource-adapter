@@ -15,11 +15,8 @@
  */
 package net.betzel.lmdb.jca;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.CursorIterator;
-import org.lmdbjava.Dbi;
 import org.lmdbjava.PutFlags;
 import org.lmdbjava.Stat;
 
@@ -42,7 +39,9 @@ public interface LMDbConnection<T> extends AutoCloseable {
 
     public T get(final T key);
 
-    public String getName();
+    public int getMaxKeySize();
+
+    public String getDatabaseName();
 
     public CursorIterator<T> iterate();
 
@@ -57,10 +56,6 @@ public interface LMDbConnection<T> extends AutoCloseable {
     public T reserve(final T key, final int size, final PutFlags... op);
 
     public Stat stat();
-
-    //env
-
-    public Dbi<ByteBuffer> open(String databaseName) throws IOException;
 
     @Override
     public void close();

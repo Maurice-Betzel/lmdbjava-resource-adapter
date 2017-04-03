@@ -16,9 +16,6 @@
 package net.betzel.lmdb.jca;
 
 import static java.lang.System.getProperty;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import static java.util.Locale.ENGLISH;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -30,13 +27,12 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lmdbjava.ByteBufferProxy;
 
 /**
  * ConnectorTestCase
@@ -90,8 +86,10 @@ public class ConnectorTestCase {
     @Test
     public void testGetConnection() throws Throwable {
         assertNotNull(testConnectionFactory);
-        LMDbConnection connection = testConnectionFactory.getConnection();
+        String databaseName = "testdb";
+        LMDbConnection connection = testConnectionFactory.getConnection(databaseName);
         assertNotNull(connection);
+        assertEquals(connection.getDatabaseName(), databaseName);
         connection.close();
     }
 
@@ -100,22 +98,19 @@ public class ConnectorTestCase {
      *
      * @throws Throwable Thrown if case of an error
      */
-    @Test
-    public void testCreateDatabase() throws Throwable {
-        assertNotNull(testConnectionFactory);
-        LMDbConnection connection = testConnectionFactory.getConnection();
-        assertNotNull(connection);
-        long databaseFileSize = 1_024 * 1_024;
-        Path databasePath = Paths.get("/test");
-        String databaseFileName = "test.db";
-        String databaseRootPath = connection.create(databaseFileSize, databaseFileName, databasePath, ByteBufferProxy.PROXY_OPTIMAL);
-        Path databaseFile = Paths.get(databaseRootPath, databaseFileName);
-        assertTrue(Files.exists(databaseFile));
-        if(windows || osx) {
-            assertEquals(databaseFileSize, databaseFile.toFile().length());
-        }
-        connection.close();
-    }
+//    @Test
+//    public void testCreateDatabase() throws Throwable {
+//        assertNotNull(testConnectionFactory);
+//        String databaseName = "testdb";
+//        LMDbConnection connection = testConnectionFactory.getConnection(databaseName);
+//        assertNotNull(connection);
+//        Path databaseFile = Paths.get(databaseRootPath, databaseFileName);
+//        assertTrue(Files.exists(databaseFile));
+//        if(windows || osx) {
+//            assertEquals(databaseFileSize, databaseFile.toFile().length());
+//        }
+//        connection.close();
+//    }
 
     /**
      * Test creation of system properties
@@ -125,7 +120,8 @@ public class ConnectorTestCase {
     @Test
     public void testSystemproperties() throws Throwable {
         assertNotNull(testConnectionFactory);
-        LMDbConnection connection = testConnectionFactory.getConnection();
+        String databaseName = "testdb";
+        LMDbConnection connection = testConnectionFactory.getConnection(databaseName);
         assertNotNull(connection);
         assertNotNull(getProperty(DISABLE_EXTRACT_PROP));
         assertTrue(!Boolean.valueOf(getProperty(DISABLE_EXTRACT_PROP)));

@@ -16,10 +16,8 @@
 package net.betzel.lmdb.jca;
 
 import java.util.logging.Logger;
-
 import javax.naming.NamingException;
 import javax.naming.Reference;
-
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 
@@ -74,9 +72,10 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
      * @throws ResourceException Thrown if a connection can't be obtained
      */
     @Override
-    public LMDbConnection getConnection() throws ResourceException {
+    public LMDbConnection getConnection(String databaseName) throws ResourceException {
         log.finest("getConnection()");
-        return (LMDbConnection) connectionManager.allocateConnection(managedConnectionFactory, null);
+        LMDbConnectionRequestInfo connectionRequestInfo = new LMDbConnectionRequestInfoImpl(databaseName);
+        return (LMDbConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
     /**

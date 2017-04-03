@@ -31,6 +31,8 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionMetaData;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
+import org.lmdbjava.Dbi;
+import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
 
 /**
@@ -68,15 +70,16 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
     /**
      * The lmdb environment
      */
-    private Env<T>env;
+    private Env<T>environment;
 
     /**
      * Default constructor
      *
      * @param managedConnectionFactory managedConnectionFactory
      */
-    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory) {
+    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory, Env<T> environment) {
         this.managedConnectionFactory = managedConnectionFactory;
+        this.environment = environment;
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
         this.connections = new HashSet<LMDbConnectionImpl>();
@@ -93,7 +96,9 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
      */
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
-        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory);
+        LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
+        Dbi<T> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory, dbi);
         connections.add(connection);
         return connection;
     }
@@ -240,5 +245,7 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
     //lmdbjava specific
 
 
-
+    public Env<T> getEnvironment() {
+        return environment;
+    }
 }

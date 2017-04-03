@@ -17,16 +17,13 @@ package net.betzel.lmdb.jca;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import static java.util.Objects.isNull;
 import java.util.Set;
-
 import java.util.logging.Logger;
-
 import javax.resource.ResourceException;
 import javax.resource.spi.ConfigProperty;
 import javax.resource.spi.ConnectionDefinition;
@@ -36,8 +33,10 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.ResourceAdapterAssociation;
-
 import javax.security.auth.Subject;
+import org.lmdbjava.BufferProxy;
+import org.lmdbjava.ByteBufferProxy;
+import org.lmdbjava.DirectBufferProxy;
 import org.lmdbjava.Env;
 import static org.lmdbjava.EnvFlags.MDB_NOSUBDIR;
 
@@ -50,7 +49,7 @@ import static org.lmdbjava.EnvFlags.MDB_NOSUBDIR;
         connectionFactoryImpl = LMDbConnectionFactoryImpl.class,
         connection = LMDbConnection.class,
         connectionImpl = LMDbConnectionImpl.class)
-public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation {
+public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory, ResourceAdapterAssociation {
 
     /**
      * The serial version UID
@@ -72,7 +71,10 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     private PrintWriter logwriter;
 
-    private Env<ByteBuffer> env;
+    /**
+     * The lmdb environment
+     */
+    private Env<T> environment;
 
     @ConfigProperty
     private String filePath;
@@ -86,30 +88,15 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
     @ConfigProperty(defaultValue = "1")
     private int maxDatabases;
 
+    @ConfigProperty(defaultValue = "PROXY_OPTIMAL")
+    private String bufferProxy;
+
+
     /**
      * Default constructor
      */
     public LMDbManagedConnectionFactory() {
 
-    }
-
-    private void createIfNotExists() throws ResourceException {
-        if (isNull(env)) {
-            Path path = Paths.get(filePath);
-            Path parentPath = path.getParent();
-            if (Files.notExists(parentPath)) {
-                try {
-                    Files.createDirectories(parentPath);
-                } catch (IOException e) {
-                    throw new ResourceException(e);
-                }
-            } else {
-                if (!Files.isDirectory(parentPath)) {
-                    throw new ResourceException(parentPath.toString() + " is not a directory!");
-                }
-            }
-            this.env = Env.create().setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
-        }
     }
 
     /**
@@ -121,7 +108,6 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
         log.finest("createConnectionFactory()");
-        createIfNotExists();
         return new LMDbConnectionFactoryImpl(this, cxManager);
     }
 
@@ -145,8 +131,32 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("createManagedConnection()");
-        return new LMDbManagedConnection(this);
+        if (isNull(this.environment)) {
+            createEnvironment();
+        }
+        return new LMDbManagedConnection(this, this.environment);
     }
+
+    /**
+     * Creates a new lmdb environment according to the configuration properties
+     */
+    private void createEnvironment() throws ResourceException {
+        Path path = Paths.get(filePath);
+        Path parentPath = path.getParent();
+        if (Files.notExists(parentPath)) {
+            try {
+                Files.createDirectories(parentPath);
+            } catch (IOException e) {
+                throw new ResourceException(e);
+            }
+        } else {
+            if (!Files.isDirectory(parentPath)) {
+                throw new ResourceException(parentPath.toString() + " is not a directory!");
+            }
+        }
+        this.environment = Env.create(parseBufferProxy(bufferProxy)).setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
+    }
+
 
     /**
      * Returns a matched connection from the candidate set of connections.
@@ -213,36 +223,58 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
         this.resourceAdapter = resourceAdapter;
     }
 
-    public String getFilePath() {
+    String getFilePath() {
         return filePath;
     }
 
-    public void setFilePath(String filePath) {
+    void setFilePath(String filePath) {
         this.filePath = filePath;
     }
 
-    public long getFileSize() {
+    long getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(long fileSize) {
+    void setFileSize(long fileSize) {
         this.fileSize = fileSize;
     }
 
-    public int getMaxReaders() {
+    int getMaxReaders() {
         return maxReaders;
     }
 
-    public void setMaxReaders(int maxReaders) {
+    void setMaxReaders(int maxReaders) {
         this.maxReaders = maxReaders;
     }
 
-    public int getMaxDatabases() {
+    int getMaxDatabases() {
         return maxDatabases;
     }
 
-    public void setMaxDatabases(int maxDatabases) {
+    void setMaxDatabases(int maxDatabases) {
         this.maxDatabases = maxDatabases;
+    }
+
+    public String getBufferProxy() {
+        return bufferProxy;
+    }
+
+    public void setBufferProxy(String bufferProxy) {
+        this.bufferProxy = bufferProxy;
+    }
+
+    private BufferProxy parseBufferProxy(String bufferProxy) {
+        BufferProxyEnum bufferProxyEnum = BufferProxyEnum.valueOf(bufferProxy);
+        switch (bufferProxyEnum) {
+            case PROXY_OPTIMAL:
+                return ByteBufferProxy.PROXY_OPTIMAL;
+            case PROXY_SAFE:
+                return ByteBufferProxy.PROXY_SAFE;
+            case PROXY_DB:
+                return DirectBufferProxy.PROXY_DB;
+            default:
+                throw new IllegalArgumentException("Unknown buffer proxy: " + bufferProxy);
+        }
     }
 
     /**

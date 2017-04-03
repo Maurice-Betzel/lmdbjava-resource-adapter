@@ -32,6 +32,6 @@ public interface LMDbConnectionFactory extends Serializable, Referenceable {
      * @return LMDbConnection instance
      * @throws ResourceException Thrown if a connection can't be obtained
      */
-    public LMDbConnection getConnection() throws ResourceException;
+    public LMDbConnection getConnection(String databaseName) throws ResourceException;
 
 }

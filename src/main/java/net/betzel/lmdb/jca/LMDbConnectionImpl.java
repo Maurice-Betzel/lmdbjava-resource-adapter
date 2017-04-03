@@ -16,6 +16,7 @@
 package net.betzel.lmdb.jca;
 
 import java.nio.ByteBuffer;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.logging.Logger;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.CursorIterator;
@@ -34,6 +35,8 @@ public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
      */
     private static Logger log = Logger.getLogger(LMDbConnectionImpl.class.getName());
 
+    private Dbi<T> dbi;
+
     /**
      * ManagedConnection
      */
@@ -50,9 +53,10 @@ public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
      * @param managedConnection        LMDbManagedConnection
      * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
-    public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
+    public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory, Dbi<T> dbi) {
         this.managedConnection = managedConnection;
         this.managedConnectionFactory = managedConnectionFactory;
+        this.dbi = dbi;
     }
 
     @Override
@@ -75,9 +79,13 @@ public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
         return null;
     }
 
+    public int getMaxKeySize() {
+        return managedConnection.getEnvironment().getMaxKeySize();
+    }
+
     @Override
-    public String getName() {
-        return null;
+    public String getDatabaseName() {
+        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
     }
 
     @Override
@@ -112,12 +120,6 @@ public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
 
     @Override
     public Stat stat() {
-        return null;
-    }
-
-    @Override
-    public Dbi<ByteBuffer> open(String databaseName) {
-        //return managedConnection create(12, maxDatabaseSize, databaseFileName, databaseDirectory, proxy);
         return null;
     }
 
