@@ -113,12 +113,6 @@
             <groupId>org.lmdbjava</groupId>
             <artifactId>lmdbjava</artifactId>
             <version>0.0.6-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.lmdbjava</groupId>
-            <artifactId>lmdbjava</artifactId>
-            <version>0.0.6-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

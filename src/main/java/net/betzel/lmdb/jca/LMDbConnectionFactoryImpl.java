@@ -83,19 +83,6 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
         return (LMDbConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
-    public int getMaxKeySize() {
-        return managedConnectionFactory.getEnvironment().getMaxKeySize();
-    }
-
-    public List<String> getDatabaseNames() {
-        List<byte[]> dbiNames = managedConnectionFactory.getEnvironment().getDbiNames();
-        List<String> databaseNames = new ArrayList<>(dbiNames.size());
-        for(byte[] bytes : dbiNames) {
-            databaseNames.add(String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes))));
-        }
-        return databaseNames;
-    }
-
     /**
      * Get the Reference instance.
      *

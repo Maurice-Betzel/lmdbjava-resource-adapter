@@ -15,10 +15,7 @@
  */
 package net.betzel.lmdb.jca;
 
-import org.lmdbjava.Cursor;
-import org.lmdbjava.CursorIterator;
-import org.lmdbjava.PutFlags;
-import org.lmdbjava.Stat;
+import java.util.List;
 
 /**
  * LMDbConnection
@@ -27,31 +24,21 @@ import org.lmdbjava.Stat;
  *
  * @version $Revision: $
  */
-public interface LMDbConnection<T> extends AutoCloseable {
-
-    public boolean delete(final T key);
-
-    public boolean delete(final T key, final T value);
-
-    public void clear(); //drop
-
-    public T get(final T key);
+public interface LMDbConnection extends AutoCloseable {
 
     public String getDatabaseName();
 
-    public CursorIterator<T> iterate();
+    public List<String> getDatabaseNames();
 
-    public CursorIterator<T> iterate(final T key, final CursorIterator.IteratorType type);
+    public void put(String key, String value);
 
-    public Cursor<T> openCursor();
+    public String get(String key);
 
-    public void put(final T key, final T val);
+    public boolean delete(String key);
 
-    public boolean put(final T key, final T val, final PutFlags... flags);
+    public boolean delete(String key, String value);
 
-    public T reserve(final T key, final int size, final PutFlags... op);
-
-    public Stat stat();
+    public void clear(); //drop
 
     @Override
     public void close();

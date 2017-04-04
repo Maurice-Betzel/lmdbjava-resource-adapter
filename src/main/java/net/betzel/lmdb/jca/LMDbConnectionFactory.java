@@ -34,13 +34,4 @@ public interface LMDbConnectionFactory extends Serializable, Referenceable {
      */
     public LMDbConnection getConnection(String databaseName) throws ResourceException;
 
-    /**
-     * Get named databases in lmdb environment
-     *
-     * @return Array of database names
-     */
-    public List<String> getDatabaseNames();
-
-    public int getMaxKeySize();
-
 }

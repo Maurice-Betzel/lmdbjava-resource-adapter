@@ -17,20 +17,26 @@ package net.betzel.lmdb.jca;
 
 import static java.lang.System.getProperty;
 import static java.util.Locale.ENGLISH;
+
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
+
 import static net.betzel.lmdb.jca.LMDbResourceAdapter.DISABLE_EXTRACT_PROP;
 import static net.betzel.lmdb.jca.LMDbResourceAdapter.LMDB_NATIVE_LIB_PROP;
+
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -79,38 +85,33 @@ public class ConnectorTestCase {
     private LMDbConnectionFactory testConnectionFactory;
 
     /**
-     * Test getConnection
+     * Test connection and database creation
      *
      * @throws Throwable Thrown if case of an error
      */
     @Test
-    public void testGetConnection() throws Throwable {
+    public void testConnectionAndCreateDatabases() throws Throwable {
         assertNotNull(testConnectionFactory);
-        String databaseName = "testdb";
-        LMDbConnection connection = testConnectionFactory.getConnection(databaseName);
-        assertNotNull(connection);
-        assertEquals(connection.getDatabaseName(), databaseName);
-        connection.close();
+        String databaseName1 = "testdb1";
+        LMDbConnection connection1 = testConnectionFactory.getConnection(databaseName1);
+        assertNotNull(connection1);
+        assertEquals(connection1.getDatabaseName(), databaseName1);
+        String databaseName2 = "testdb2";
+        LMDbConnection connection2 = testConnectionFactory.getConnection(databaseName2);
+        assertNotNull(connection2);
+        assertEquals(connection2.getDatabaseName(), databaseName2);
+        String databaseName3 = "testdb3";
+        LMDbConnection connection3 = testConnectionFactory.getConnection(databaseName3);
+        assertNotNull(connection3);
+        assertEquals(connection3.getDatabaseName(), databaseName3);
+        LMDbConnection connection4 = testConnectionFactory.getConnection(databaseName3);
+        assertNotNull(connection4);
+        assertEquals(connection4.getDatabaseName(), databaseName3);
+        assertEquals(connection1.getDatabaseNames().size(), 3);
+        connection1.close();
+        connection2.close();
+        connection3.close();
     }
-
-    /**
-     * Test database creation
-     *
-     * @throws Throwable Thrown if case of an error
-     */
-//    @Test
-//    public void testCreateDatabase() throws Throwable {
-//        assertNotNull(testConnectionFactory);
-//        String databaseName = "testdb";
-//        LMDbConnection connection = testConnectionFactory.getConnection(databaseName);
-//        assertNotNull(connection);
-//        Path databaseFile = Paths.get(databaseRootPath, databaseFileName);
-//        assertTrue(Files.exists(databaseFile));
-//        if(windows || osx) {
-//            assertEquals(databaseFileSize, databaseFile.toFile().length());
-//        }
-//        connection.close();
-//    }
 
     /**
      * Test creation of system properties
@@ -121,12 +122,12 @@ public class ConnectorTestCase {
     public void testSystemproperties() throws Throwable {
         assertNotNull(testConnectionFactory);
         String databaseName = "testdb";
-        LMDbConnection connection = testConnectionFactory.getConnection(databaseName);
-        assertNotNull(connection);
-        assertNotNull(getProperty(DISABLE_EXTRACT_PROP));
-        assertTrue(!Boolean.valueOf(getProperty(DISABLE_EXTRACT_PROP)));
-        assertNull(getProperty(LMDB_NATIVE_LIB_PROP));
-        connection.close();
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+            assertNotNull(connection);
+            assertNotNull(getProperty(DISABLE_EXTRACT_PROP));
+            assertTrue(!Boolean.valueOf(getProperty(DISABLE_EXTRACT_PROP)));
+            assertNull(getProperty(LMDB_NATIVE_LIB_PROP));
+        }
     }
 
 }

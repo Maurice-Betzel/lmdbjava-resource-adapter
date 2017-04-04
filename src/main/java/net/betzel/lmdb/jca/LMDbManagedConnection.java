@@ -16,6 +16,7 @@
 package net.betzel.lmdb.jca;
 
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,6 +35,8 @@ import javax.transaction.xa.XAResource;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * LMDbManagedConnection
@@ -145,7 +148,7 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
      */
     public void destroy() throws ResourceException {
         log.finest("destroy()");
-
+        environment.close();
     }
 
     /**
@@ -244,8 +247,21 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
 
     //lmdbjava specific
 
-
     public Env<T> getEnvironment() {
         return environment;
     }
+
+    public int getDatabaseMaxKeySize() {
+        return environment.getMaxKeySize();
+    }
+
+    public List<String> getDatabaseNames() {
+        List<byte[]> dbiNames = environment.getDbiNames();
+        List<String> databaseNames = new ArrayList<>(dbiNames.size());
+        for(byte[] bytes : dbiNames) {
+            databaseNames.add(String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes))));
+        }
+        return databaseNames;
+    }
+
 }

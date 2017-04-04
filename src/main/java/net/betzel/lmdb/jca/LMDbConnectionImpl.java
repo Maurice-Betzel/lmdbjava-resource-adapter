@@ -16,7 +16,11 @@
 package net.betzel.lmdb.jca;
 
 import java.nio.ByteBuffer;
+
+import static java.nio.ByteBuffer.allocateDirect;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.util.List;
 import java.util.logging.Logger;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.CursorIterator;
@@ -29,7 +33,7 @@ import org.lmdbjava.Stat;
  *
  * @version $Revision: $
  */
-public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
+public class LMDbConnectionImpl<T> implements LMDbConnection {
     /**
      * The logger
      */
@@ -60,63 +64,39 @@ public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
     }
 
     @Override
-    public boolean delete(T key) {
+    public String getDatabaseName() {
+        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
+    }
+
+    @Override
+    public List<String> getDatabaseNames() {
+        return managedConnection.getDatabaseNames();
+    }
+
+    @Override
+    public void put(String key, String value) {
+        ByteBuffer keyBuffer = allocateDirect(managedConnection.getDatabaseMaxKeySize());
+
+    }
+
+    @Override
+    public String get(String key) {
+        return null;
+    }
+
+    @Override
+    public boolean delete(String key) {
         return false;
     }
 
     @Override
-    public boolean delete(T key, T value) {
+    public boolean delete(String key, String value) {
         return false;
     }
 
     @Override
     public void clear() {
 
-    }
-
-    @Override
-    public T get(T key) {
-        return null;
-    }
-
-    @Override
-    public String getDatabaseName() {
-        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
-    }
-
-    @Override
-    public CursorIterator<T> iterate() {
-        return null;
-    }
-
-    @Override
-    public CursorIterator<T> iterate(T key, CursorIterator.IteratorType type) {
-        return null;
-    }
-
-    @Override
-    public Cursor openCursor() {
-        return null;
-    }
-
-    @Override
-    public void put(T key, T val) {
-
-    }
-
-    @Override
-    public boolean put(T key, T val, PutFlags... flags) {
-        return false;
-    }
-
-    @Override
-    public T reserve(T key, int size, PutFlags... op) {
-        return null;
-    }
-
-    @Override
-    public Stat stat() {
-        return null;
     }
 
     @Override

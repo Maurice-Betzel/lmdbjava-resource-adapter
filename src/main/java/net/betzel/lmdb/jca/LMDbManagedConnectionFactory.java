@@ -65,11 +65,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      */
     private PrintWriter logwriter;
 
-    /**
-     * The lmdb environment
-     */
-    private Env<T> environment;
-
     @ConfigProperty
     private String filePath;
 
@@ -82,7 +77,7 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
     @ConfigProperty(defaultValue = "1")
     private int maxDatabases;
 
-    @ConfigProperty(defaultValue = "PROXY_OPTIMAL")
+    @ConfigProperty(defaultValue = "PROXY_SAFE")
     private String bufferProxy;
 
 
@@ -102,9 +97,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      */
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
         log.finest("createConnectionFactory()");
-        if (this.environment == null) {
-            createEnvironment();
-        }
         return new LMDbConnectionFactoryImpl(this, cxManager);
     }
 
@@ -115,9 +107,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      * @throws ResourceException Generic exception
      */
     public Object createConnectionFactory() throws ResourceException {
-        if (this.environment == null) {
-            createEnvironment();
-        }
         throw new ResourceException("This resource adapter doesn't support non-managed environments");
     }
 
@@ -131,13 +120,13 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      */
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("createManagedConnection()");
-        return new LMDbManagedConnection(this, this.environment);
+        return new LMDbManagedConnection(this, createEnvironment());
     }
 
     /**
      * Creates a new lmdb environment according to the configuration properties
      */
-    private void createEnvironment() throws ResourceException {
+    private Env createEnvironment() throws ResourceException {
         Path path = Paths.get(filePath);
         Path parentPath = path.getParent();
         if (Files.notExists(parentPath)) {
@@ -151,7 +140,7 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
                 throw new ResourceException(parentPath.toString() + " is not a directory!");
             }
         }
-        this.environment = Env.create(parseBufferProxy(bufferProxy)).setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
+        return Env.create(parseBufferProxy(bufferProxy)).setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
     }
 
 
@@ -258,10 +247,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
 
     public void setBufferProxy(String bufferProxy) {
         this.bufferProxy = bufferProxy;
-    }
-
-    public Env<T> getEnvironment() {
-        return environment;
     }
 
     private BufferProxy parseBufferProxy(String bufferProxy) {
