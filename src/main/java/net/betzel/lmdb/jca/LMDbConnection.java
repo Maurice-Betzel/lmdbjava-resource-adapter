@@ -29,8 +29,6 @@ import org.lmdbjava.Stat;
  */
 public interface LMDbConnection<T> extends AutoCloseable {
 
-    //dbi
-
     public boolean delete(final T key);
 
     public boolean delete(final T key, final T value);
@@ -38,8 +36,6 @@ public interface LMDbConnection<T> extends AutoCloseable {
     public void clear(); //drop
 
     public T get(final T key);
-
-    public int getMaxKeySize();
 
     public String getDatabaseName();
 

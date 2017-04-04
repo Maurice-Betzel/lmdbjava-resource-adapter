@@ -15,22 +15,14 @@
  */
 package net.betzel.lmdb.jca;
 
-import static java.lang.System.getProperty;
-import static java.lang.System.setProperty;
-import static java.util.Objects.isNull;
+import javax.resource.ResourceException;
+import javax.resource.spi.*;
+import javax.resource.spi.endpoint.MessageEndpointFactory;
+import javax.transaction.xa.XAResource;
 import java.util.logging.Logger;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.ActivationSpec;
-import javax.resource.spi.BootstrapContext;
-import javax.resource.spi.ConfigProperty;
-import javax.resource.spi.Connector;
-import javax.resource.spi.ResourceAdapter;
-import javax.resource.spi.ResourceAdapterInternalException;
-import javax.resource.spi.TransactionSupport;
-import javax.resource.spi.endpoint.MessageEndpointFactory;
-
-import javax.transaction.xa.XAResource;
+import static java.lang.System.getProperty;
+import static java.lang.System.setProperty;
 
 /**
  * LMDbResourceAdapter
@@ -140,10 +132,10 @@ public class LMDbResourceAdapter implements ResourceAdapter, java.io.Serializabl
      */
     public void start(BootstrapContext ctx) throws ResourceAdapterInternalException {
         log.finest("start()");
-        if(isNull(getProperty(DISABLE_EXTRACT_PROP))) {
+        if(getProperty(DISABLE_EXTRACT_PROP) == null) {
             setProperty("lmdbjava.disable.extract", lmdbjavaDisableExtract.toString());
         }
-        if(isNull(getProperty(LMDB_NATIVE_LIB_PROP))) {
+        if(getProperty(LMDB_NATIVE_LIB_PROP) == null) {
             if(!lmdbjavaNativeLibPath.isEmpty()) {
                 setProperty("lmdbjava.disable.extract", lmdbjavaNativeLibPath);
             }

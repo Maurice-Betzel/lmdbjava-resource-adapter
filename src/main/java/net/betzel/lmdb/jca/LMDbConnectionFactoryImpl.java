@@ -15,11 +15,16 @@
  */
 package net.betzel.lmdb.jca;
 
-import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * LMDbConnectionFactoryImpl
@@ -76,6 +81,19 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
         log.finest("getConnection()");
         LMDbConnectionRequestInfo connectionRequestInfo = new LMDbConnectionRequestInfoImpl(databaseName);
         return (LMDbConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
+    }
+
+    public int getMaxKeySize() {
+        return managedConnectionFactory.getEnvironment().getMaxKeySize();
+    }
+
+    public List<String> getDatabaseNames() {
+        List<byte[]> dbiNames = managedConnectionFactory.getEnvironment().getDbiNames();
+        List<String> databaseNames = new ArrayList<>(dbiNames.size());
+        for(byte[] bytes : dbiNames) {
+            databaseNames.add(String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes))));
+        }
+        return databaseNames;
     }
 
     /**

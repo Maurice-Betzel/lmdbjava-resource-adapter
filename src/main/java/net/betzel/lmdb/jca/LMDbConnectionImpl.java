@@ -79,10 +79,6 @@ public class LMDbConnectionImpl<T> implements LMDbConnection<T> {
         return null;
     }
 
-    public int getMaxKeySize() {
-        return managedConnection.getEnvironment().getMaxKeySize();
-    }
-
     @Override
     public String getDatabaseName() {
         return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));

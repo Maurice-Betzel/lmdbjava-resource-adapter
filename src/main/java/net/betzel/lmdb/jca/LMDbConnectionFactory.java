@@ -15,10 +15,10 @@
  */
 package net.betzel.lmdb.jca;
 
-import java.io.Serializable;
-
 import javax.resource.Referenceable;
 import javax.resource.ResourceException;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * LMDbConnectionFactory
@@ -33,5 +33,14 @@ public interface LMDbConnectionFactory extends Serializable, Referenceable {
      * @throws ResourceException Thrown if a connection can't be obtained
      */
     public LMDbConnection getConnection(String databaseName) throws ResourceException;
+
+    /**
+     * Get named databases in lmdb environment
+     *
+     * @return Array of database names
+     */
+    public List<String> getDatabaseNames();
+
+    public int getMaxKeySize();
 
 }

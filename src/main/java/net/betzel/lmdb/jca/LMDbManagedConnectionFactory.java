@@ -15,29 +15,23 @@
  */
 package net.betzel.lmdb.jca;
 
+import org.lmdbjava.BufferProxy;
+import org.lmdbjava.ByteBufferProxy;
+import org.lmdbjava.DirectBufferProxy;
+import org.lmdbjava.Env;
+
+import javax.resource.ResourceException;
+import javax.resource.spi.*;
+import javax.security.auth.Subject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import static java.util.Objects.isNull;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConfigProperty;
-import javax.resource.spi.ConnectionDefinition;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
-import javax.resource.spi.ResourceAdapter;
-import javax.resource.spi.ResourceAdapterAssociation;
-import javax.security.auth.Subject;
-import org.lmdbjava.BufferProxy;
-import org.lmdbjava.ByteBufferProxy;
-import org.lmdbjava.DirectBufferProxy;
-import org.lmdbjava.Env;
+
 import static org.lmdbjava.EnvFlags.MDB_NOSUBDIR;
 
 /**
@@ -108,6 +102,9 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      */
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
         log.finest("createConnectionFactory()");
+        if (this.environment == null) {
+            createEnvironment();
+        }
         return new LMDbConnectionFactoryImpl(this, cxManager);
     }
 
@@ -118,6 +115,9 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      * @throws ResourceException Generic exception
      */
     public Object createConnectionFactory() throws ResourceException {
+        if (this.environment == null) {
+            createEnvironment();
+        }
         throw new ResourceException("This resource adapter doesn't support non-managed environments");
     }
 
@@ -131,9 +131,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
      */
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("createManagedConnection()");
-        if (isNull(this.environment)) {
-            createEnvironment();
-        }
         return new LMDbManagedConnection(this, this.environment);
     }
 
@@ -173,7 +170,7 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
         Iterator it = connectionSet.iterator();
         while (result == null && it.hasNext()) {
             ManagedConnection mc = (ManagedConnection) it.next();
-            if (mc instanceof LMDbManagedConnection) {
+            if (mc instanceof LMDbManagedConnection && mc.equals(this)) {
                 result = mc;
             }
 
@@ -263,9 +260,13 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
         this.bufferProxy = bufferProxy;
     }
 
+    public Env<T> getEnvironment() {
+        return environment;
+    }
+
     private BufferProxy parseBufferProxy(String bufferProxy) {
-        BufferProxyEnum bufferProxyEnum = BufferProxyEnum.valueOf(bufferProxy);
-        switch (bufferProxyEnum) {
+        LMDbBufferProxyEnum LMDbBufferProxyEnum = net.betzel.lmdb.jca.LMDbBufferProxyEnum.valueOf(bufferProxy);
+        switch (LMDbBufferProxyEnum) {
             case PROXY_OPTIMAL:
                 return ByteBufferProxy.PROXY_OPTIMAL;
             case PROXY_SAFE:
