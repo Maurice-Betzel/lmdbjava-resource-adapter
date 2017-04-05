@@ -20,26 +20,22 @@ import java.nio.ByteBuffer;
 import static java.nio.ByteBuffer.allocateDirect;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.List;
 import java.util.logging.Logger;
-import org.lmdbjava.Cursor;
-import org.lmdbjava.CursorIterator;
-import org.lmdbjava.Dbi;
-import org.lmdbjava.PutFlags;
-import org.lmdbjava.Stat;
+
+import org.lmdbjava.*;
 
 /**
  * LMDbConnectionImpl
  *
  * @version $Revision: $
  */
-public class LMDbConnectionImpl<T> implements LMDbConnection {
+public class LMDbConnectionImpl implements LMDbConnection {
     /**
      * The logger
      */
     private static Logger log = Logger.getLogger(LMDbConnectionImpl.class.getName());
 
-    private Dbi<T> dbi;
+    private Dbi<ByteBuffer> dbi;
 
     /**
      * ManagedConnection
@@ -69,28 +65,78 @@ public class LMDbConnectionImpl<T> implements LMDbConnection {
     }
 
     @Override
-    public void put(String key, String value) {
-        ByteBuffer keyBuffer = allocateDirect(managedConnectionFactory.getDatabaseMaxKeySize());
+    public boolean put(String key, String val) {
+        boolean isPut = false;
+        byte[] keyBytes = key.getBytes(UTF_8);
+        byte[] valBytes = val.getBytes(UTF_8);
+        checkKeySize(keyBytes.length);
+        ByteBuffer keyBuffer = allocateDirect(keyBytes.length);
+        ByteBuffer valBuffer = allocateDirect(valBytes.length);
+        keyBuffer.put(keyBytes).flip();
+        valBuffer.put(valBytes).flip();
+        try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
+            isPut = dbi.put(txn, keyBuffer, valBuffer);
+            txn.commit();
+        }
+        return isPut;
     }
 
     @Override
     public String get(String key) {
-        return null;
+        String value = null;
+        byte[] keyBytes = key.getBytes(UTF_8);
+        checkKeySize(keyBytes.length);
+        ByteBuffer keyBuffer = allocateDirect(keyBytes.length);
+        keyBuffer.put(keyBytes).flip();
+        try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
+            ByteBuffer foundBuffer = dbi.get(txn, keyBuffer);
+            if (foundBuffer != null) {
+                value = UTF_8.decode(foundBuffer).toString();
+            }
+        }
+        return value;
     }
 
     @Override
     public boolean delete(String key) {
-        return false;
+        boolean isDeleted = false;
+        byte[] keyBytes = key.getBytes(UTF_8);
+        checkKeySize(keyBytes.length);
+        ByteBuffer keyBuffer = allocateDirect(keyBytes.length);
+        keyBuffer.put(keyBytes).flip();
+        try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
+            isDeleted = dbi.delete(txn, keyBuffer);
+            txn.commit();
+        }
+        return isDeleted;
     }
 
     @Override
-    public boolean delete(String key, String value) {
-        return false;
+    public boolean delete(String key, String val) {
+        boolean isDeleted = false;
+        byte[] keyBytes = key.getBytes(UTF_8);
+        byte[] valBytes = val.getBytes(UTF_8);
+        checkKeySize(keyBytes.length);
+        ByteBuffer keyBuffer = allocateDirect(keyBytes.length);
+        ByteBuffer valBuffer = allocateDirect(valBytes.length);
+        keyBuffer.put(keyBytes).flip();
+        valBuffer.put(valBytes).flip();
+        try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
+            isDeleted = dbi.delete(txn, keyBuffer, valBuffer);
+            txn.commit();
+        }
+        return isDeleted;
     }
 
     @Override
     public void clear() {
 
+    }
+
+    private void checkKeySize(int keySize) {
+        if (keySize > managedConnectionFactory.getDatabaseMaxKeySize()) {
+            throw new IllegalArgumentException("Key exceed max key size: " + managedConnectionFactory.getDatabaseMaxKeySize());
+        }
     }
 
     @Override

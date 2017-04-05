@@ -28,7 +28,7 @@ public interface LMDbConnection extends AutoCloseable {
 
     public String getDatabaseName();
 
-    public void put(String key, String value);
+    public boolean put(String key, String value);
 
     public String get(String key);
 

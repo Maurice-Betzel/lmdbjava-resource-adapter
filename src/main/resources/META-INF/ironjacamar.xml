@@ -34,7 +34,6 @@
             <config-property name="fileSize">10485760</config-property>
             <config-property name="maxReaders">16</config-property>
             <config-property name="maxDatabases">3</config-property>
-            <config-property name="bufferProxy">PROXY_OPTIMAL</config-property>
             <recovery>
                 <recover-credential>
                     <user-name>user</user-name>

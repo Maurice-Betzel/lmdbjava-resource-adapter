@@ -47,7 +47,7 @@ import static org.lmdbjava.EnvFlags.MDB_NOSUBDIR;
         connectionFactoryImpl = LMDbConnectionFactoryImpl.class,
         connection = LMDbConnection.class,
         connectionImpl = LMDbConnectionImpl.class)
-public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory, ResourceAdapterAssociation {
+public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation {
 
     /**
      * The serial version UID
@@ -82,9 +82,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
 
     @ConfigProperty(defaultValue = "1")
     private int maxDatabases;
-
-    @ConfigProperty(defaultValue = "PROXY_SAFE")
-    private String bufferProxy;
 
     /**
      * Default constructor
@@ -219,12 +216,8 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
                 throw new ResourceException(parentPath.toString() + " is not a directory!");
             }
         }
-        return Env.create(parseBufferProxy(bufferProxy)).setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
+        return Env.create(ByteBufferProxy.PROXY_SAFE).setMaxDbs(maxDatabases).setMaxReaders(maxReaders).setMapSize(fileSize).open(path.toFile(), MDB_NOSUBDIR);
     }
-
-//    public Env<T> getEnvironment() {
-//        return environment;
-//    }
 
     public int getDatabaseMaxKeySize() {
         return environment.getMaxKeySize();
@@ -269,14 +262,6 @@ public class LMDbManagedConnectionFactory<T> implements ManagedConnectionFactory
 
     void setMaxDatabases(int maxDatabases) {
         this.maxDatabases = maxDatabases;
-    }
-
-    public String getBufferProxy() {
-        return bufferProxy;
-    }
-
-    public void setBufferProxy(String bufferProxy) {
-        this.bufferProxy = bufferProxy;
     }
 
     private BufferProxy parseBufferProxy(String bufferProxy) {

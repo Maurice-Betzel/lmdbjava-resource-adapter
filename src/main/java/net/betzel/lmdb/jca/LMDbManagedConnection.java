@@ -35,6 +35,7 @@ import javax.transaction.xa.XAResource;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
+import org.lmdbjava.Txn;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -43,7 +44,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *
  * @version $Revision: $
  */
-public class LMDbManagedConnection<T> implements ManagedConnection {
+public class LMDbManagedConnection implements ManagedConnection {
 
     /**
      * The logger
@@ -73,19 +74,19 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
     /**
      * The lmdb environment
      */
-    private Env<T>environment;
+    private Env environment;
 
     /**
      * The database
      */
-    private Dbi<T>dbi;
+    private Dbi<ByteBuffer> dbi;
 
     /**
      * Default constructor
      *
      * @param managedConnectionFactory managedConnectionFactory
      */
-    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory, Env<T> environment) {
+    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory, Env environment) {
         this.managedConnectionFactory = managedConnectionFactory;
         this.environment = environment;
         this.logwriter = null;
@@ -249,12 +250,20 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
         return new LMDbManagedConnectionMetaData();
     }
 
-    public Dbi<T> getDbi() {
+    Dbi getDbi() {
         return dbi;
     }
 
-    public String getDatabaseName() {
+    String getDatabaseName() {
         return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
+    }
+
+    Txn getWriteTransaction() {
+        return environment.txnWrite();
+    }
+
+    Txn getReadTransaction() {
+        return environment.txnRead();
     }
 
 }

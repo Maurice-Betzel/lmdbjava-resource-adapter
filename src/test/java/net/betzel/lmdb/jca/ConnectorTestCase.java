@@ -25,17 +25,13 @@ import javax.annotation.Resource;
 
 import static net.betzel.lmdb.jca.LMDbResourceAdapter.DISABLE_EXTRACT_PROP;
 import static net.betzel.lmdb.jca.LMDbResourceAdapter.LMDB_NATIVE_LIB_PROP;
+import static org.junit.Assert.*;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -128,6 +124,41 @@ public class ConnectorTestCase {
             assertNotNull(getProperty(DISABLE_EXTRACT_PROP));
             assertTrue(!Boolean.valueOf(getProperty(DISABLE_EXTRACT_PROP)));
             assertNull(getProperty(LMDB_NATIVE_LIB_PROP));
+        }
+    }
+
+    /**
+     * Test put, get and delete values
+     *
+     * @throws Throwable Thrown if case of an error
+     */
+    @Test
+    public void testPutGetDelete() throws Throwable {
+        assertNotNull(testConnectionFactory);
+        String databaseName = "testdb1";
+        String databaseKey = "testKey";
+        String databaseVal = "testVal";
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+            assertNotNull(connection);
+            boolean result = connection.put(databaseKey, databaseVal);
+            assertTrue(result);
+            String value = connection.get(databaseKey);
+            assertNotNull(value);
+            assertEquals(databaseVal, value);
+            result = connection.delete(databaseKey);
+            assertTrue(result);
+            value = connection.get(databaseKey);
+            assertNull(value);
+            // delete with key/value
+            result = connection.put(databaseKey, databaseVal);
+            assertTrue(result);
+            value = connection.get(databaseKey);
+            assertNotNull(value);
+            assertEquals(databaseVal, value);
+            result = connection.delete(databaseKey, databaseVal);
+            assertTrue(result);
+            value = connection.get(databaseKey);
+            assertNull(value);
         }
     }
 
