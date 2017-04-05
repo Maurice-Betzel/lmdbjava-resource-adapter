@@ -15,8 +15,6 @@
  */
 package net.betzel.lmdb.jca;
 
-import java.util.List;
-
 /**
  * LMDbConnection
  * <p>
@@ -28,11 +26,27 @@ public interface LMDbConnection extends AutoCloseable {
 
     public String getDatabaseName();
 
+    public boolean put(Integer key, Integer val);
+
+    public boolean put(Integer key, String val);
+
+    public boolean put(String key, Integer val);
+
     public boolean put(String key, String value);
 
-    public String get(String key);
+    public <T> T get(Integer key, Class<T> type);
+
+    public <T> T get(String key, Class<T> type);
+
+    public boolean delete(Integer key);
 
     public boolean delete(String key);
+
+    public boolean delete(Integer key, Integer value);
+
+    public boolean delete(Integer key, String value);
+
+    public boolean delete(String key, Integer value);
 
     public boolean delete(String key, String value);
 

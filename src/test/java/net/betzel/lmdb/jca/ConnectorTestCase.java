@@ -142,23 +142,53 @@ public class ConnectorTestCase {
             assertNotNull(connection);
             boolean result = connection.put(databaseKey, databaseVal);
             assertTrue(result);
-            String value = connection.get(databaseKey);
+            String value = connection.get(databaseKey, String.class);
             assertNotNull(value);
             assertEquals(databaseVal, value);
             result = connection.delete(databaseKey);
             assertTrue(result);
-            value = connection.get(databaseKey);
+            value = connection.get(databaseKey, String.class);
             assertNull(value);
             // delete with key/value
             result = connection.put(databaseKey, databaseVal);
             assertTrue(result);
-            value = connection.get(databaseKey);
+            value = connection.get(databaseKey, String.class);
             assertNotNull(value);
             assertEquals(databaseVal, value);
             result = connection.delete(databaseKey, databaseVal);
             assertTrue(result);
-            value = connection.get(databaseKey);
+            value = connection.get(databaseKey, String.class);
             assertNull(value);
+        }
+    }
+
+    /**
+     * Test clear batabase
+     *
+     * @throws Throwable Thrown if case of an error
+     */
+    @Test
+    public void testClear() throws Throwable {
+        assertNotNull(testConnectionFactory);
+        String databaseName = "testdb1";
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+            assertNotNull(connection);
+            connection.put(1, 42);
+            connection.put(2, 42);
+            connection.put(3, 42);
+            Integer result = connection.get(1, Integer.class);
+            assertEquals(42, result.intValue());
+            result = connection.get(2, Integer.class);
+            assertEquals(42, result.intValue());
+            result = connection.get(3, Integer.class);
+            assertEquals(42, result.intValue());
+            connection.clear();
+            result = connection.get(1, Integer.class);
+            assertNull(result);
+            result = connection.get(2, Integer.class);
+            assertNull(result);
+            result = connection.get(3, Integer.class);
+            assertNull(result);
         }
     }
 
