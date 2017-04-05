@@ -33,7 +33,7 @@
             <config-property name="filePath">C:\Users\mbetzel\Development\workspaces\IntelliJ\lmdbjava-jca-resource-adapter\target\storage\test.mdb</config-property>
             <config-property name="fileSize">10485760</config-property>
             <config-property name="maxReaders">16</config-property>
-            <config-property name="maxDatabases">2</config-property>
+            <config-property name="maxDatabases">3</config-property>
             <config-property name="bufferProxy">PROXY_OPTIMAL</config-property>
             <recovery>
                 <recover-credential>

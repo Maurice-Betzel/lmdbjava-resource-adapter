@@ -26,6 +26,11 @@ import java.util.List;
  * @version $Revision: $
  */
 public interface LMDbConnectionFactory extends Serializable, Referenceable {
+
+    public int getDatabaseMaxKeySize();
+
+    public List<String> getDatabaseNames();
+
     /**
      * Get connection from factory
      *

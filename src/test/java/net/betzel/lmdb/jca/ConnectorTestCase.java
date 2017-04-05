@@ -107,10 +107,11 @@ public class ConnectorTestCase {
         LMDbConnection connection4 = testConnectionFactory.getConnection(databaseName3);
         assertNotNull(connection4);
         assertEquals(connection4.getDatabaseName(), databaseName3);
-        assertEquals(connection1.getDatabaseNames().size(), 3);
+        assertEquals(testConnectionFactory.getDatabaseNames().size(), 3);
         connection1.close();
         connection2.close();
         connection3.close();
+        connection4.close();
     }
 
     /**
@@ -121,7 +122,7 @@ public class ConnectorTestCase {
     @Test
     public void testSystemproperties() throws Throwable {
         assertNotNull(testConnectionFactory);
-        String databaseName = "testdb";
+        String databaseName = "testdb1";
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
             assertNotNull(connection);
             assertNotNull(getProperty(DISABLE_EXTRACT_PROP));

@@ -70,6 +70,14 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
         this.connectionManager = cxManager;
     }
 
+    public int getDatabaseMaxKeySize() {
+        return managedConnectionFactory.getDatabaseMaxKeySize();
+    }
+
+    public List<String> getDatabaseNames() {
+        return managedConnectionFactory.getDatabaseNames();
+    }
+
     /**
      * Get connection from factory
      *

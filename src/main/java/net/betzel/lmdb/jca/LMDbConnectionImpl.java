@@ -57,26 +57,20 @@ public class LMDbConnectionImpl<T> implements LMDbConnection {
      * @param managedConnection        LMDbManagedConnection
      * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
-    public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory, Dbi<T> dbi) {
+    public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
         this.managedConnection = managedConnection;
         this.managedConnectionFactory = managedConnectionFactory;
-        this.dbi = dbi;
+        this.dbi = managedConnection.getDbi();
     }
 
     @Override
     public String getDatabaseName() {
-        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
-    }
-
-    @Override
-    public List<String> getDatabaseNames() {
-        return managedConnection.getDatabaseNames();
+        return managedConnection.getDatabaseName();
     }
 
     @Override
     public void put(String key, String value) {
-        ByteBuffer keyBuffer = allocateDirect(managedConnection.getDatabaseMaxKeySize());
-
+        ByteBuffer keyBuffer = allocateDirect(managedConnectionFactory.getDatabaseMaxKeySize());
     }
 
     @Override

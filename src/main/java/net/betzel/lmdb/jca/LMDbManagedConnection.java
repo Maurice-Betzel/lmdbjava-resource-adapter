@@ -76,6 +76,11 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
     private Env<T>environment;
 
     /**
+     * The database
+     */
+    private Dbi<T>dbi;
+
+    /**
      * Default constructor
      *
      * @param managedConnectionFactory managedConnectionFactory
@@ -89,7 +94,7 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
     }
 
     /**
-     * Creates a new connection handle for the underlying physical connection
+     * Creates a new connection handle for every underlying physical Dbi connection
      * represented by the ManagedConnection instance.
      *
      * @param subject       Security context as JAAS subject
@@ -100,8 +105,8 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
         LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-        Dbi<T> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
-        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory, dbi);
+        this.dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory);
         connections.add(connection);
         return connection;
     }
@@ -148,7 +153,7 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
      */
     public void destroy() throws ResourceException {
         log.finest("destroy()");
-        environment.close();
+        dbi.close();
     }
 
     /**
@@ -187,7 +192,6 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
         for (ConnectionEventListener cel : listeners) {
             cel.connectionClosed(event);
         }
-
     }
 
     /**
@@ -245,23 +249,12 @@ public class LMDbManagedConnection<T> implements ManagedConnection {
         return new LMDbManagedConnectionMetaData();
     }
 
-    //lmdbjava specific
-
-    public Env<T> getEnvironment() {
-        return environment;
+    public Dbi<T> getDbi() {
+        return dbi;
     }
 
-    public int getDatabaseMaxKeySize() {
-        return environment.getMaxKeySize();
-    }
-
-    public List<String> getDatabaseNames() {
-        List<byte[]> dbiNames = environment.getDbiNames();
-        List<String> databaseNames = new ArrayList<>(dbiNames.size());
-        for(byte[] bytes : dbiNames) {
-            databaseNames.add(String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes))));
-        }
-        return databaseNames;
+    public String getDatabaseName() {
+        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
     }
 
 }
