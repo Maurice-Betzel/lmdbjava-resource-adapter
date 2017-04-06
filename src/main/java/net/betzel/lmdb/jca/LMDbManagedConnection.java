@@ -81,6 +81,8 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     private Dbi<ByteBuffer> dbi;
 
+    private XAResource xaResource;
+
     /**
      * Default constructor
      *
@@ -106,7 +108,9 @@ public class LMDbManagedConnection implements ManagedConnection {
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
         LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-        this.dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+        if(this.dbi == null) {
+            this.dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+        }
         LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory);
         connections.add(connection);
         return connection;
@@ -121,13 +125,12 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public void associateConnection(Object connection) throws ResourceException {
         log.finest("associateConnection()");
-
-        if (connection == null)
+        if (connection == null) {
             throw new ResourceException("Null connection handle");
-
-        if (!(connection instanceof LMDbConnectionImpl))
+        }
+        if (!(connection instanceof LMDbConnectionImpl)) {
             throw new ResourceException("Wrong connection handle");
-
+        }
         LMDbConnectionImpl handle = (LMDbConnectionImpl) connection;
         handle.setManagedConnection(this);
         connections.add(handle);
@@ -144,7 +147,6 @@ public class LMDbManagedConnection implements ManagedConnection {
             connection.setManagedConnection(null);
         }
         connections.clear();
-
     }
 
     /**
@@ -155,6 +157,7 @@ public class LMDbManagedConnection implements ManagedConnection {
     public void destroy() throws ResourceException {
         log.finest("destroy()");
         dbi.close();
+        dbi = null;
     }
 
     /**
@@ -164,8 +167,9 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public void addConnectionEventListener(ConnectionEventListener listener) {
         log.finest("addConnectionEventListener()");
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("Listener is null");
+        }
         listeners.add(listener);
     }
 
@@ -176,8 +180,9 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public void removeConnectionEventListener(ConnectionEventListener listener) {
         log.finest("removeConnectionEventListener()");
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("Listener is null");
+        }
         listeners.remove(listener);
     }
 
@@ -225,7 +230,7 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public LocalTransaction getLocalTransaction() throws ResourceException {
         log.finest("getLocalTransaction()");
-        return null;
+        return new LMDbLocalTransaction(this);
     }
 
     /**
@@ -236,7 +241,7 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public XAResource getXAResource() throws ResourceException {
         log.finest("getXAResource()");
-        return null;
+        return xaResource == null ? new LMDbXAResource(this) : xaResource;
     }
 
     /**
@@ -248,6 +253,10 @@ public class LMDbManagedConnection implements ManagedConnection {
     public ManagedConnectionMetaData getMetaData() throws ResourceException {
         log.finest("getMetaData()");
         return new LMDbManagedConnectionMetaData();
+    }
+
+    public List<ConnectionEventListener> getListeners() {
+        return listeners;
     }
 
     Dbi getDbi() {

@@ -18,10 +18,11 @@ package net.betzel.lmdb.jca;
 import static java.lang.System.getProperty;
 import static java.util.Locale.ENGLISH;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
+import javax.naming.InitialContext;
+import javax.transaction.UserTransaction;
 
 import static net.betzel.lmdb.jca.LMDbResourceAdapter.DISABLE_EXTRACT_PROP;
 import static net.betzel.lmdb.jca.LMDbResourceAdapter.LMDB_NATIVE_LIB_PROP;
@@ -87,6 +88,7 @@ public class ConnectorTestCase {
      */
     @Test
     public void testConnectionAndCreateDatabases() throws Throwable {
+        InitialContext context = new InitialContext();
         assertNotNull(testConnectionFactory);
         String databaseName1 = "testdb1";
         LMDbConnection connection1 = testConnectionFactory.getConnection(databaseName1);
@@ -140,24 +142,24 @@ public class ConnectorTestCase {
         String databaseVal = "testVal";
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
             assertNotNull(connection);
-            boolean result = connection.put(databaseKey, databaseVal);
+            boolean result = connection.put(databaseKey, LMDbUtil.toByteBuffer(databaseVal));
             assertTrue(result);
-            String value = connection.get(databaseKey, String.class);
+            String value = connection.get(LMDbUtil.toByteBuffer(databaseKey), String.class);
             assertNotNull(value);
             assertEquals(databaseVal, value);
-            result = connection.delete(databaseKey);
+            result = connection.delete(LMDbUtil.toByteBuffer(databaseKey));
             assertTrue(result);
-            value = connection.get(databaseKey, String.class);
+            value = connection.get(LMDbUtil.toByteBuffer(databaseKey), String.class);
             assertNull(value);
             // delete with key/value
-            result = connection.put(databaseKey, databaseVal);
+            result = connection.put(LMDbUtil.toByteBuffer(databaseKey), LMDbUtil.toByteBuffer(databaseVal));
             assertTrue(result);
-            value = connection.get(databaseKey, String.class);
+            value = connection.get(LMDbUtil.toByteBuffer(databaseKey), String.class);
             assertNotNull(value);
             assertEquals(databaseVal, value);
-            result = connection.delete(databaseKey, databaseVal);
+            result = connection.delete(LMDbUtil.toByteBuffer(databaseKey), LMDbUtil.toByteBuffer(databaseVal));
             assertTrue(result);
-            value = connection.get(databaseKey, String.class);
+            value = connection.get(LMDbUtil.toByteBuffer(databaseKey), String.class);
             assertNull(value);
         }
     }
@@ -173,21 +175,21 @@ public class ConnectorTestCase {
         String databaseName = "testdb1";
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
             assertNotNull(connection);
-            connection.put(1, 42);
-            connection.put(2, 42);
-            connection.put(3, 42);
-            Integer result = connection.get(1, Integer.class);
-            assertEquals(42, result.intValue());
-            result = connection.get(2, Integer.class);
-            assertEquals(42, result.intValue());
-            result = connection.get(3, Integer.class);
-            assertEquals(42, result.intValue());
+            connection.put(LMDbUtil.toByteBuffer(1), LMDbUtil.toByteBuffer(42));
+            connection.put(LMDbUtil.toByteBuffer(2), LMDbUtil.toByteBuffer(42));
+            connection.put(LMDbUtil.toByteBuffer(3), LMDbUtil.toByteBuffer(42));
+            Integer result = connection.get(LMDbUtil.toByteBuffer(1), Integer.class);
+            assertEquals(LMDbUtil.toByteBuffer(42), result.intValue());
+            result = connection.get(LMDbUtil.toByteBuffer(2), Integer.class);
+            assertEquals(LMDbUtil.toByteBuffer(42), result.intValue());
+            result = connection.get(LMDbUtil.toByteBuffer(3), Integer.class);
+            assertEquals(LMDbUtil.toByteBuffer(42), result.intValue());
             connection.clear();
-            result = connection.get(1, Integer.class);
+            result = connection.get(LMDbUtil.toByteBuffer(1), Integer.class);
             assertNull(result);
-            result = connection.get(2, Integer.class);
+            result = connection.get(LMDbUtil.toByteBuffer(2), Integer.class);
             assertNull(result);
-            result = connection.get(3, Integer.class);
+            result = connection.get(LMDbUtil.toByteBuffer(3), Integer.class);
             assertNull(result);
         }
     }

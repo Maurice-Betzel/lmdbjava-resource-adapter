@@ -15,6 +15,8 @@
  */
 package net.betzel.lmdb.jca;
 
+import java.nio.ByteBuffer;
+
 /**
  * LMDbConnection
  * <p>
@@ -24,35 +26,25 @@ package net.betzel.lmdb.jca;
  */
 public interface LMDbConnection extends AutoCloseable {
 
-    public String getDatabaseName();
+    String getDatabaseName();
 
-    public boolean put(Integer key, Integer val);
+    public boolean put(String key, ByteBuffer val);
 
-    public boolean put(Integer key, String val);
+    boolean put(ByteBuffer key, ByteBuffer val);
 
-    public boolean put(String key, Integer val);
+    <T> T get(ByteBuffer key, Class<T> type);
 
-    public boolean put(String key, String value);
+    boolean delete(ByteBuffer key);
 
-    public <T> T get(Integer key, Class<T> type);
+    boolean delete(ByteBuffer key, ByteBuffer val);
 
-    public <T> T get(String key, Class<T> type);
+    void clear(); //drop
 
-    public boolean delete(Integer key);
+    public void checkKeySize(int size);
 
-    public boolean delete(String key);
-
-    public boolean delete(Integer key, Integer value);
-
-    public boolean delete(Integer key, String value);
-
-    public boolean delete(String key, Integer value);
-
-    public boolean delete(String key, String value);
-
-    public void clear(); //drop
+    void checkKeySize(String key);
 
     @Override
-    public void close();
+    void close();
 
 }
