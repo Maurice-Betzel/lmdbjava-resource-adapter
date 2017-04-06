@@ -90,13 +90,16 @@ public class TransactionTestCase {
      */
     @Test
     public void testLocalTransaction() throws Throwable {
+        log.finest("testLocalTransaction()");
         assertNotNull(testConnectionFactory);
         String databaseName = "testdb1";
         assertNotNull(userTransaction);
         assertEquals(userTransaction.getStatus(), Status.STATUS_NO_TRANSACTION);
         userTransaction.begin();
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+            connection.put("testKey", LMDbUtil.toByteBuffer("testValue"));
         }
+        userTransaction.commit();
     }
 
 }

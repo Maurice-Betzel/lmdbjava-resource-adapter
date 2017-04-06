@@ -10,35 +10,41 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class LMDbUtil {
 
+    public static final Short byteSizeLong = Long.SIZE / Byte.SIZE;
+    public static final Short byteSizeShort = Short.SIZE / Byte.SIZE;
+    public static final Short byteSizeFloat = Float.SIZE / Byte.SIZE;
+    public static final Short byteSizeDouble = Double.SIZE / Byte.SIZE;
+    public static final Short byteSizeInteger = Integer.SIZE / Byte.SIZE;
+
     private LMDbUtil() {
     }
 
-    public static ByteBuffer toByteBuffer(Short number) {
-        ByteBuffer byteBuffer = allocateDirect(Short.SIZE / Byte.SIZE);
-        byteBuffer.putShort(number.shortValue()).flip();
-        return byteBuffer;
-    }
-
     public static ByteBuffer toByteBuffer(Long number) {
-        ByteBuffer byteBuffer = allocateDirect(Long.SIZE / Byte.SIZE);
+        ByteBuffer byteBuffer = allocateDirect(byteSizeLong);
         byteBuffer.putLong(number.longValue()).flip();
         return byteBuffer;
     }
 
+    public static ByteBuffer toByteBuffer(Short number) {
+        ByteBuffer byteBuffer = allocateDirect(byteSizeShort);
+        byteBuffer.putShort(number.shortValue()).flip();
+        return byteBuffer;
+    }
+
     public static ByteBuffer toByteBuffer(Float number) {
-        ByteBuffer byteBuffer = allocateDirect(Float.SIZE / Byte.SIZE);
+        ByteBuffer byteBuffer = allocateDirect(byteSizeFloat);
         byteBuffer.putFloat(number.floatValue()).flip();
         return byteBuffer;
     }
 
     public static ByteBuffer toByteBuffer(Double number) {
-        ByteBuffer byteBuffer = allocateDirect(Double.SIZE / Byte.SIZE);
+        ByteBuffer byteBuffer = allocateDirect(byteSizeDouble);
         byteBuffer.putDouble(number.doubleValue()).flip();
         return byteBuffer;
     }
 
     public static ByteBuffer toByteBuffer(Integer number) {
-        ByteBuffer byteBuffer = allocateDirect(Integer.SIZE / Byte.SIZE);
+        ByteBuffer byteBuffer = allocateDirect(byteSizeInteger);
         byteBuffer.putInt(number.intValue()).flip();
         return byteBuffer;
     }

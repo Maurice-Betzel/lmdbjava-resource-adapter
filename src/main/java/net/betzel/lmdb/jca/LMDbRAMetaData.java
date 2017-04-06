@@ -21,11 +21,11 @@ import java.util.Properties;
 import javax.resource.cci.ResourceAdapterMetaData;
 
 /**
- * LMDbRaMetaData
+ * LMDbRAMetaData
  *
  * @version $Revision: $
  */
-public class LMDbRaMetaData implements ResourceAdapterMetaData {
+public class LMDbRAMetaData implements ResourceAdapterMetaData {
 
     private static final Properties PROPERTIES = new Properties();
     private static final String PROPERTIES_FILE = "net.betzel.lmdb.jca.properties";
@@ -36,7 +36,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
     private static final String ADAPTER_JCA_VERSION = "lmdb.jca.version";
 
     static {
-        try (InputStream inputStream = LMDbRaMetaData.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
+        try (InputStream inputStream = LMDbRAMetaData.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
             PROPERTIES.load(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,7 +46,7 @@ public class LMDbRaMetaData implements ResourceAdapterMetaData {
     /**
      * Default constructor
      */
-    public LMDbRaMetaData() {
+    public LMDbRAMetaData() {
 
     }
 

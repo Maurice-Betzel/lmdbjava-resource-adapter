@@ -15,27 +15,24 @@
  */
 package net.betzel.lmdb.jca;
 
-import static java.lang.System.getProperty;
-import static java.util.Locale.ENGLISH;
-
-import java.util.UUID;
-import java.util.logging.Logger;
-import javax.annotation.Resource;
-import javax.naming.InitialContext;
-import javax.transaction.UserTransaction;
-
-import static net.betzel.lmdb.jca.LMDbResourceAdapter.DISABLE_EXTRACT_PROP;
-import static net.betzel.lmdb.jca.LMDbResourceAdapter.LMDB_NATIVE_LIB_PROP;
-import static org.junit.Assert.*;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.annotation.Resource;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+import static java.lang.System.getProperty;
+import static net.betzel.lmdb.jca.LMDbResourceAdapter.DISABLE_EXTRACT_PROP;
+import static net.betzel.lmdb.jca.LMDbResourceAdapter.LMDB_NATIVE_LIB_PROP;
+import static org.junit.Assert.*;
 
 /**
  * ConnectorTestCase
@@ -48,18 +45,6 @@ public class ConnectorTestCase {
     private static Logger log = Logger.getLogger(ConnectorTestCase.class.getName());
 
     private static String deploymentName = "ConnectorTestCase";
-
-    private static boolean linux;
-    private static boolean osx;
-    private static boolean windows;
-
-    static {
-        final String os = getProperty("os.name");
-        linux = os.toLowerCase(ENGLISH).startsWith("linux");
-        osx = os.startsWith("Mac OS X");
-        windows = os.startsWith("Windows");
-    }
-
     /**
      * Define the deployment
      *
@@ -88,7 +73,7 @@ public class ConnectorTestCase {
      */
     @Test
     public void testConnectionAndCreateDatabases() throws Throwable {
-        InitialContext context = new InitialContext();
+        log.finest("testConnectionAndCreateDatabases()");
         assertNotNull(testConnectionFactory);
         String databaseName1 = "testdb1";
         LMDbConnection connection1 = testConnectionFactory.getConnection(databaseName1);
@@ -119,6 +104,7 @@ public class ConnectorTestCase {
      */
     @Test
     public void testSystemproperties() throws Throwable {
+        log.finest("testSystemproperties()");
         assertNotNull(testConnectionFactory);
         String databaseName = "testdb1";
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
@@ -136,6 +122,7 @@ public class ConnectorTestCase {
      */
     @Test
     public void testPutGetDelete() throws Throwable {
+        log.finest("testPutGetDelete()");
         assertNotNull(testConnectionFactory);
         String databaseName = "testdb1";
         String databaseKey = "testKey";
@@ -171,6 +158,7 @@ public class ConnectorTestCase {
      */
     @Test
     public void testClear() throws Throwable {
+        log.finest("testClear()");
         assertNotNull(testConnectionFactory);
         String databaseName = "testdb1";
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
@@ -179,11 +167,11 @@ public class ConnectorTestCase {
             connection.put(LMDbUtil.toByteBuffer(2), LMDbUtil.toByteBuffer(42));
             connection.put(LMDbUtil.toByteBuffer(3), LMDbUtil.toByteBuffer(42));
             Integer result = connection.get(LMDbUtil.toByteBuffer(1), Integer.class);
-            assertEquals(LMDbUtil.toByteBuffer(42), result.intValue());
+            assertEquals(42, result.intValue());
             result = connection.get(LMDbUtil.toByteBuffer(2), Integer.class);
-            assertEquals(LMDbUtil.toByteBuffer(42), result.intValue());
+            assertEquals(42, result.intValue());
             result = connection.get(LMDbUtil.toByteBuffer(3), Integer.class);
-            assertEquals(LMDbUtil.toByteBuffer(42), result.intValue());
+            assertEquals(42, result.intValue());
             connection.clear();
             result = connection.get(LMDbUtil.toByteBuffer(1), Integer.class);
             assertNull(result);

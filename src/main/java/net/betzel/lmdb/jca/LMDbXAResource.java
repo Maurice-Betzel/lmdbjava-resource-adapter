@@ -18,66 +18,105 @@ package net.betzel.lmdb.jca;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created by mbetzel on 05.04.2017.
  */
 public class LMDbXAResource implements XAResource {
 
+    private static Logger log = Logger.getLogger(LMDbXAResource.class.getName());
+
     private LMDbManagedConnection managedConnection;
+
+    private List<Xid> xids = Collections.synchronizedList(new ArrayList());
+
+    private volatile boolean onePhase = false;
 
     public LMDbXAResource(LMDbManagedConnection managedConnection) {
         this.managedConnection = managedConnection;
     }
 
     @Override
-    public void commit(Xid xid, boolean b) throws XAException {
-
+    public void commit(Xid xid, boolean onePhase) throws XAException {
+        log.finest("commit()");
+        if (onePhase) {
+            // 1PC
+            this.onePhase = true;
+        }
     }
 
     @Override
     public void end(Xid xid, int i) throws XAException {
-
+        log.finest("end()");
     }
 
     @Override
     public void forget(Xid xid) throws XAException {
+        log.finest("forget()");
 
     }
 
     @Override
     public int getTransactionTimeout() throws XAException {
+        log.finest("getTransactionTimeout()");
         return 0;
     }
 
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException {
+        log.finest("isSameRM()");
         return false;
     }
 
     @Override
     public int prepare(Xid xid) throws XAException {
+        log.finest("prepare()");
+        // get txn
         return 0;
     }
 
     @Override
     public Xid[] recover(int i) throws XAException {
-        return new Xid[0];
+        log.finest("recover()");
+        if (onePhase) {
+            return new Xid[0];
+        } else {
+            return xids.toArray(new Xid[xids.size()]);
+        }
     }
 
     @Override
     public void rollback(Xid xid) throws XAException {
+        log.finest("rollback()");
 
     }
 
     @Override
     public boolean setTransactionTimeout(int i) throws XAException {
+        log.finest("setTransactionTimeout()");
         return false;
     }
 
     @Override
     public void start(Xid xid, int i) throws XAException {
+        log.finest("start()");
+        if (i == TMNOFLAGS) {
+            log.finest("TMNOFLAGS");
+        } else if (i == TMJOIN) {
+            log.finest("TMJOIN");
+        } else if (i == TMRESUME) {
+            log.finest("TMRESUME");
+        } else {
+            log.finest("UNKNOWN");
+        }
 
+        //managedConnection.getConnection()
+
+        xids.add(xid);
     }
 
 }

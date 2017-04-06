@@ -29,7 +29,7 @@ import org.lmdbjava.*;
  *
  * @version $Revision: $
  */
-public class LMDbConnectionImpl implements LMDbConnection {
+public class LMDbConnectionImpl implements LMDbConnection, LMDbXConnection {
     /**
      * The logger
      */
@@ -66,6 +66,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean put(String key, ByteBuffer val) {
+        log.finest("put1()");
         byte[] stringBytes = key.getBytes(UTF_8);
         checkKeySize(stringBytes.length);
         ByteBuffer keyBuffer = allocateDirect(stringBytes.length);
@@ -75,6 +76,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean put(ByteBuffer key, ByteBuffer val) {
+        log.finest("put2()");
         boolean isPut = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             isPut = dbi.put(txn, key, val);
@@ -85,6 +87,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public <T> T get(ByteBuffer key, Class<T> type) {
+        log.finest("get()");
         Object value = null;
         try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
             ByteBuffer foundBuffer = dbi.get(txn, key);
@@ -111,6 +114,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean delete(ByteBuffer key) {
+        log.finest("delete1()");
         boolean isDeleted = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             isDeleted = dbi.delete(txn, key);
@@ -121,6 +125,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean delete(ByteBuffer key, ByteBuffer val) {
+        log.finest("delete2()");
         boolean isDeleted = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             isDeleted = dbi.delete(txn, key, val);
@@ -131,6 +136,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public void clear() {
+        log.finest("clear()");
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             dbi.drop(txn);
             txn.commit();
@@ -153,6 +159,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public void close() {
+        log.finest("close()");
         if (managedConnection != null) {
             managedConnection.closeHandle(this);
             managedConnection = null;
@@ -166,4 +173,13 @@ public class LMDbConnectionImpl implements LMDbConnection {
         this.managedConnection = managedConnection;
     }
 
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
 }

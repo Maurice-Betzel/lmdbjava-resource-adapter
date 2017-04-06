@@ -83,6 +83,8 @@ public class LMDbManagedConnection implements ManagedConnection {
 
     private XAResource xaResource;
 
+    private LocalTransaction txResource;
+
     /**
      * Default constructor
      *
@@ -192,6 +194,7 @@ public class LMDbManagedConnection implements ManagedConnection {
      * @param handle The handle
      */
     void closeHandle(LMDbConnection handle) {
+        log.finest("closeHandle()");
         connections.remove((LMDbConnectionImpl) handle);
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
         event.setConnectionHandle(handle);
@@ -230,7 +233,7 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public LocalTransaction getLocalTransaction() throws ResourceException {
         log.finest("getLocalTransaction()");
-        return new LMDbLocalTransaction(this);
+        return txResource == null ? new LMDbTXResource(this) : txResource;
     }
 
     /**
@@ -252,7 +255,7 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public ManagedConnectionMetaData getMetaData() throws ResourceException {
         log.finest("getMetaData()");
-        return new LMDbManagedConnectionMetaData();
+        return new LMDbManagedConnectionMetaData(managedConnectionFactory.getMaxReaders());
     }
 
     public List<ConnectionEventListener> getListeners() {

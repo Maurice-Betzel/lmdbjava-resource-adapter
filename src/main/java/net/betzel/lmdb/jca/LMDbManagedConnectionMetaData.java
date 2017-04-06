@@ -32,11 +32,13 @@ public class LMDbManagedConnectionMetaData implements ManagedConnectionMetaData 
      */
     private static Logger log = Logger.getLogger(LMDbManagedConnectionMetaData.class.getName());
 
+    private int maxConnections;
+
     /**
      * Default constructor
      */
-    public LMDbManagedConnectionMetaData() {
-
+    public LMDbManagedConnectionMetaData(int maxConnections) {
+        this.maxConnections = maxConnections;
     }
 
     /**
@@ -48,7 +50,7 @@ public class LMDbManagedConnectionMetaData implements ManagedConnectionMetaData 
     @Override
     public String getEISProductName() throws ResourceException {
         log.finest("getEISProductName()");
-        return null; //TODO
+        return "LMDB";
     }
 
     /**
@@ -60,7 +62,7 @@ public class LMDbManagedConnectionMetaData implements ManagedConnectionMetaData 
     @Override
     public String getEISProductVersion() throws ResourceException {
         log.finest("getEISProductVersion()");
-        return null; //TODO
+        return "0.9.19";
     }
 
     /**
@@ -72,7 +74,7 @@ public class LMDbManagedConnectionMetaData implements ManagedConnectionMetaData 
     @Override
     public int getMaxConnections() throws ResourceException {
         log.finest("getMaxConnections()");
-        return 0; //TODO
+        return maxConnections;
     }
 
     /**
@@ -84,7 +86,7 @@ public class LMDbManagedConnectionMetaData implements ManagedConnectionMetaData 
     @Override
     public String getUserName() throws ResourceException {
         log.finest("getUserName()");
-        return null; //TODO
+        return null;
     }
 
 

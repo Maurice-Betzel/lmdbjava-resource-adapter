@@ -98,7 +98,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      * @throws ResourceException Generic exception
      */
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
-        log.finest("createConnectionFactory()");
+        log.finest("createConnectionFactory() managed");
         if(environment == null || environment.isClosed()) {
             environment = createEnvironment();
         }
@@ -112,6 +112,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      * @throws ResourceException Generic exception
      */
     public Object createConnectionFactory() throws ResourceException {
+        log.finest("createConnectionFactory() non managed");
 //        if(environment == null || environment.isClosed()) {
 //            environment = createEnvironment();
 //        }
@@ -203,6 +204,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      * Creates a new lmdb environment according to the configuration properties
      */
     private Env createEnvironment() throws ResourceException {
+        log.finest("createEnvironment()");
         Path path = Paths.get(filePath);
         Path parentPath = path.getParent();
         if (Files.notExists(parentPath)) {

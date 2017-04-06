@@ -22,22 +22,26 @@ import javax.resource.spi.ConnectionEvent;
 import javax.resource.spi.ConnectionEventListener;
 import javax.resource.spi.LocalTransaction;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * Created by mbetzel on 05.04.2017.
  */
-public class LMDbLocalTransaction implements LocalTransaction {
+public class LMDbTXResource implements LocalTransaction {
+
+    private static Logger log = Logger.getLogger(LMDbTXResource.class.getName());
 
     private LMDbManagedConnection managedConnection;
     private Txn<ByteBuffer> readTransaction;
     private Txn<ByteBuffer> writeTransaction;
 
-    public LMDbLocalTransaction(LMDbManagedConnection managedConnection) {
+    public LMDbTXResource(LMDbManagedConnection managedConnection) {
         this.managedConnection = managedConnection;
     }
 
     @Override
     public void begin() throws ResourceException {
+        log.finest("begin()");
         ConnectionEvent event = new ConnectionEvent(managedConnection, ConnectionEvent.LOCAL_TRANSACTION_STARTED);
         for (ConnectionEventListener cel : managedConnection.getListeners()) {
             cel.connectionClosed(event);
@@ -46,6 +50,7 @@ public class LMDbLocalTransaction implements LocalTransaction {
 
     @Override
     public void commit() throws ResourceException {
+        log.finest("commit()");
         ConnectionEvent event = new ConnectionEvent(managedConnection, ConnectionEvent.LOCAL_TRANSACTION_COMMITTED);
         for (ConnectionEventListener cel : managedConnection.getListeners()) {
             cel.connectionClosed(event);
@@ -54,6 +59,7 @@ public class LMDbLocalTransaction implements LocalTransaction {
 
     @Override
     public void rollback() throws ResourceException {
+        log.finest("rollback()");
         ConnectionEvent event = new ConnectionEvent(managedConnection, ConnectionEvent.LOCAL_TRANSACTION_ROLLEDBACK);
         for (ConnectionEventListener cel : managedConnection.getListeners()) {
             cel.connectionClosed(event);
