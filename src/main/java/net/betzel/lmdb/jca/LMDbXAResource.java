@@ -106,6 +106,10 @@ public class LMDbXAResource implements XAResource {
         log.finest("start()");
         if (i == TMNOFLAGS) {
             log.finest("TMNOFLAGS");
+            // create / get tx database with xid UID AXGTRIDSIZE+MAXBQUALSIZE as key (write as combined byte[]?)
+            // value consists of the key/value action(s) to be preformed on the original database within this transaction
+            // local txn fetched from managedConnection and set on the connectionImpl to perform tx database mods
+            // on commit copy tx database to original database with one local txn.
         } else if (i == TMJOIN) {
             log.finest("TMJOIN");
         } else if (i == TMRESUME) {

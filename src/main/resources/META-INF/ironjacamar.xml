@@ -30,7 +30,7 @@
 
     <connection-definitions>
         <connection-definition class-name="net.betzel.lmdb.jca.LMDbManagedConnectionFactory" jndi-name="java:/eis/LMDbConnectionFactory" pool-name="LMDbConnectionFactory">
-            <config-property name="filePath">C:\Users\mbetzel\Development\workspaces\IntelliJ\lmdbjava-jca-resource-adapter\target\storage\test.mdb</config-property>
+            <config-property name="filePath">/home/mbetzel/IdeaProjects/lmdbjava-jca-resource-adapter/target/storage/test.mdb</config-property>
             <config-property name="fileSize">10485760</config-property>
             <config-property name="maxReaders">16</config-property>
             <config-property name="maxDatabases">3</config-property>

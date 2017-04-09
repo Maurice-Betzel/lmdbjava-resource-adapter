@@ -244,7 +244,10 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public XAResource getXAResource() throws ResourceException {
         log.finest("getXAResource()");
-        return xaResource == null ? new LMDbXAResource(this) : xaResource;
+        if(xaResource == null) {
+            this.xaResource = new LMDbXAResource(this);
+        }
+        return xaResource;
     }
 
     /**

@@ -24,17 +24,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
-import javax.naming.InitialContext;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import static java.lang.System.getProperty;
-import static java.util.Locale.ENGLISH;
-import static net.betzel.lmdb.jca.LMDbResourceAdapter.DISABLE_EXTRACT_PROP;
-import static net.betzel.lmdb.jca.LMDbResourceAdapter.LMDB_NATIVE_LIB_PROP;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * ConnectorTestCase
@@ -47,17 +43,6 @@ public class TransactionTestCase {
     private static Logger log = Logger.getLogger(TransactionTestCase.class.getName());
 
     private static String deploymentName = "TransactionTestCase";
-
-    private static boolean linux;
-    private static boolean osx;
-    private static boolean windows;
-
-    static {
-        final String os = getProperty("os.name");
-        linux = os.toLowerCase(ENGLISH).startsWith("linux");
-        osx = os.startsWith("Mac OS X");
-        windows = os.startsWith("Windows");
-    }
 
     /**
      * Define the deployment
