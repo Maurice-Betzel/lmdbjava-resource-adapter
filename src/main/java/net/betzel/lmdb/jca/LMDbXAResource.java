@@ -108,6 +108,7 @@ public class LMDbXAResource implements XAResource {
             log.finest("TMNOFLAGS");
             // create / get tx database with xid UID AXGTRIDSIZE+MAXBQUALSIZE as key (write as combined byte[]?)
             // value consists of the key/value action(s) to be preformed on the original database within this transaction
+            // lmdb supports one key / many values, which fits nicely here. Mabe no need for extra XA DB?
             // local txn fetched from managedConnection and set on the connectionImpl to perform tx database mods
             // on commit copy tx database to original database with one local txn.
         } else if (i == TMJOIN) {
