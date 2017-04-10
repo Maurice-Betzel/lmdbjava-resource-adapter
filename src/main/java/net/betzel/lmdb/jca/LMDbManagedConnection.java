@@ -110,6 +110,7 @@ public class LMDbManagedConnection implements ManagedConnection {
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
         LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
+        //TODO new connection object for every named database
         if(this.dbi == null) {
             this.dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
         }
