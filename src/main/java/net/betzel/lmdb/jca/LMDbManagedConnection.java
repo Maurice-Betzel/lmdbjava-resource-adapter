@@ -37,8 +37,6 @@ import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
 import org.lmdbjava.Txn;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
  * LMDbManagedConnection
  *
@@ -76,10 +74,7 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     private Env environment;
 
-    /**
-     * The database
-     */
-    private Dbi<ByteBuffer> dbi;
+    private ConnectionRequestInfo cxRequestInfo;
 
     private XAResource xaResource;
 
@@ -90,12 +85,13 @@ public class LMDbManagedConnection implements ManagedConnection {
      *
      * @param managedConnectionFactory managedConnectionFactory
      */
-    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory, Env environment) {
+    public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory, Env environment, ConnectionRequestInfo cxRequestInfo) {
         this.managedConnectionFactory = managedConnectionFactory;
         this.environment = environment;
+        this.cxRequestInfo = cxRequestInfo;
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
-        this.connections = new HashSet<LMDbConnectionImpl>();
+        this.connections = new HashSet();
     }
 
     /**
@@ -109,19 +105,20 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
-        LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-        //TODO new connection object for every named database
-        if(this.dbi == null) {
-            this.dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+        if(cxRequestInfo.equals(this.cxRequestInfo)) {
+            LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
+            Dbi<ByteBuffer> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+            LMDbConnectionImpl connection = new LMDbConnectionImpl(dbi, this, managedConnectionFactory);
+            connections.add(connection);
+            return connection;
+        } else {
+            throw new IllegalArgumentException("Wrong database connection request!");
         }
-        LMDbConnectionImpl connection = new LMDbConnectionImpl(this, managedConnectionFactory);
-        connections.add(connection);
-        return connection;
     }
 
     /**
      * Used by the container to change the association of an
-     * application-level connection handle with a ManagedConneciton instance.
+     * application-level connection handle with a ManagedConnection instance.
      *
      * @param connection Application-level connection handle
      * @throws ResourceException generic exception if operation fails
@@ -159,8 +156,6 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public void destroy() throws ResourceException {
         log.finest("destroy()");
-        dbi.close();
-        dbi = null;
     }
 
     /**
@@ -262,16 +257,12 @@ public class LMDbManagedConnection implements ManagedConnection {
         return new LMDbManagedConnectionMetaData(managedConnectionFactory.getMaxReaders());
     }
 
+    public ConnectionRequestInfo getCxRequestInfo() {
+        return cxRequestInfo;
+    }
+
     public List<ConnectionEventListener> getListeners() {
         return listeners;
-    }
-
-    Dbi getDbi() {
-        return dbi;
-    }
-
-    String getDatabaseName() {
-        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
     }
 
     Txn getWriteTransaction() {

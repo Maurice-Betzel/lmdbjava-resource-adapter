@@ -35,6 +35,9 @@ public class LMDbConnectionImpl implements LMDbConnection, LMDbXConnection {
      */
     private static Logger log = Logger.getLogger(LMDbConnectionImpl.class.getName());
 
+    /**
+     * The database
+     */
     private Dbi<ByteBuffer> dbi;
 
     /**
@@ -53,15 +56,15 @@ public class LMDbConnectionImpl implements LMDbConnection, LMDbXConnection {
      * @param managedConnection        LMDbManagedConnection
      * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
-    public LMDbConnectionImpl(LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
+    public LMDbConnectionImpl(Dbi<ByteBuffer> dbi, LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
+        this.dbi = dbi;
         this.managedConnection = managedConnection;
         this.managedConnectionFactory = managedConnectionFactory;
-        this.dbi = managedConnection.getDbi();
     }
 
     @Override
     public String getDatabaseName() {
-        return managedConnection.getDatabaseName();
+        return String.valueOf(UTF_8.decode(ByteBuffer.wrap(dbi.getName())));
     }
 
     @Override
@@ -94,17 +97,17 @@ public class LMDbConnectionImpl implements LMDbConnection, LMDbXConnection {
             if (foundBuffer != null) {
                 if (type == String.class) {
                     return type.cast(String.valueOf(UTF_8.decode(foundBuffer)));
-                } else if(type == Integer.class) {
+                } else if (type == Integer.class) {
                     return type.cast(foundBuffer.getInt());
-                } else if(type == Long.class) {
+                } else if (type == Long.class) {
                     return type.cast(foundBuffer.getLong());
-                } else if(type == Float.class) {
+                } else if (type == Float.class) {
                     return type.cast(foundBuffer.getFloat());
-                } else if(type == Short.class) {
+                } else if (type == Short.class) {
                     return type.cast(foundBuffer.getShort());
-                } else if(type == Double.class) {
+                } else if (type == Double.class) {
                     return type.cast(foundBuffer.getDouble());
-                }  else {
+                } else {
                     throw new IllegalArgumentException("Type not supported: " + type.getCanonicalName());
                 }
             }
@@ -164,6 +167,7 @@ public class LMDbConnectionImpl implements LMDbConnection, LMDbXConnection {
             managedConnection.closeHandle(this);
             managedConnection = null;
         }
+        dbi.close();
     }
 
     /**
@@ -182,4 +186,20 @@ public class LMDbConnectionImpl implements LMDbConnection, LMDbXConnection {
     public void stop() {
 
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        LMDbConnectionImpl that = (LMDbConnectionImpl) o;
+
+        return this.getDatabaseName().equals(that.getDatabaseName());
+    }
+
+    @Override
+    public int hashCode() {
+        return dbi != null ? dbi.hashCode() : 0;
+    }
+
 }

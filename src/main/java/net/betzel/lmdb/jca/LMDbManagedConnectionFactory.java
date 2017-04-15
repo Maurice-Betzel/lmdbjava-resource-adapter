@@ -129,7 +129,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("createManagedConnection()");
-        return new LMDbManagedConnection(this, environment);
+        return new LMDbManagedConnection(this, environment, cxRequestInfo);
     }
 
     /**
@@ -147,10 +147,9 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
         Iterator it = connectionSet.iterator();
         while (result == null && it.hasNext()) {
             ManagedConnection managedConnection = (ManagedConnection) it.next();
-            if (managedConnection instanceof LMDbManagedConnection && cxRequestInfo instanceof LMDbConnectionRequestInfo) {
+            if (managedConnection instanceof LMDbManagedConnection) {
                 LMDbManagedConnection lmdbManagedConnection = (LMDbManagedConnection) managedConnection;
-                LMDbConnectionRequestInfo lmdbConnectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-                if(lmdbManagedConnection.getDatabaseName().equals(lmdbConnectionRequestInfo.getDatabaseName())) {
+                if(lmdbManagedConnection.getCxRequestInfo().equals(cxRequestInfo)) {
                     result = lmdbManagedConnection;
                 }
             }
