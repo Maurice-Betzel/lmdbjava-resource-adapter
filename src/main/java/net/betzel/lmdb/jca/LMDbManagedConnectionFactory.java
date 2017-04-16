@@ -49,6 +49,8 @@ import static org.lmdbjava.EnvFlags.MDB_NOSUBDIR;
         connectionImpl = LMDbConnectionImpl.class)
 public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation {
 
+    public static final String txnEnding = "Txn";
+
     /**
      * The serial version UID
      */
@@ -99,7 +101,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      */
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
         log.finest("createConnectionFactory() managed");
-        if(environment == null || environment.isClosed()) {
+        if (environment == null || environment.isClosed()) {
             environment = createEnvironment();
         }
         return new LMDbConnectionFactoryImpl(this, cxManager);
@@ -149,7 +151,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
             ManagedConnection managedConnection = (ManagedConnection) it.next();
             if (managedConnection instanceof LMDbManagedConnection) {
                 LMDbManagedConnection lmdbManagedConnection = (LMDbManagedConnection) managedConnection;
-                if(lmdbManagedConnection.getCxRequestInfo().equals(cxRequestInfo)) {
+                if (lmdbManagedConnection.getCxRequestInfo().equals(cxRequestInfo)) {
                     result = lmdbManagedConnection;
                 }
             }
@@ -227,8 +229,12 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
     public List<String> getDatabaseNames() {
         List<byte[]> dbiNames = environment.getDbiNames();
         List<String> databaseNames = new ArrayList<>(dbiNames.size());
-        for(byte[] bytes : dbiNames) {
-            databaseNames.add(String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes))));
+        for (byte[] bytes : dbiNames) {
+            String name = String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes)));
+            // skip transactional databases
+            if (!name.endsWith(txnEnding)) {
+                databaseNames.add(name);
+            }
         }
         return databaseNames;
     }

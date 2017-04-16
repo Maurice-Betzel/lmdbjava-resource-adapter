@@ -42,6 +42,11 @@ public class LMDbXAConnectionImpl implements LMDbConnection {
     private Dbi<ByteBuffer> dbi;
 
     /**
+     * The transactional database
+     */
+    private Dbi<ByteBuffer> dbiTxn;
+
+    /**
      * ManagedConnection
      */
     private LMDbManagedConnection managedConnection;
@@ -57,8 +62,9 @@ public class LMDbXAConnectionImpl implements LMDbConnection {
      * @param managedConnection        LMDbManagedConnection
      * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
-    public LMDbXAConnectionImpl(Dbi<ByteBuffer> dbi, LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
+    public LMDbXAConnectionImpl(Dbi<ByteBuffer> dbi, Dbi<ByteBuffer> dbiTxn, LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
         this.dbi = dbi;
+        this.dbiTxn = dbiTxn;
         this.managedConnection = managedConnection;
         this.managedConnectionFactory = managedConnectionFactory;
     }
