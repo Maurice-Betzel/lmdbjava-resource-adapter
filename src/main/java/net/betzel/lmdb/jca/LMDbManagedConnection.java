@@ -132,6 +132,7 @@ public class LMDbManagedConnection implements ManagedConnection {
             throw new ResourceException("Wrong connection handle");
         }
         LMDbConnectionImpl handle = (LMDbConnectionImpl) connection;
+        //TODO compare ConnectionRequestInfo
         handle.setManagedConnection(this);
         connections.add(handle);
     }
