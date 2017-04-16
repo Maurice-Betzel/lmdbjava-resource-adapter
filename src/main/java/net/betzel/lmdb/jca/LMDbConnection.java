@@ -15,6 +15,7 @@
  */
 package net.betzel.lmdb.jca;
 
+import javax.resource.spi.ConnectionRequestInfo;
 import java.nio.ByteBuffer;
 
 /**
@@ -28,7 +29,11 @@ public interface LMDbConnection extends AutoCloseable {
 
     String getDatabaseName();
 
-    public boolean put(String key, ByteBuffer val);
+    ConnectionRequestInfo getConnectionRequestInfo();
+
+    void setManagedConnection(LMDbManagedConnection managedConnection);
+
+    boolean put(String key, ByteBuffer val);
 
     boolean put(ByteBuffer key, ByteBuffer val);
 
@@ -40,7 +45,7 @@ public interface LMDbConnection extends AutoCloseable {
 
     void clear(); //drop
 
-    public void checkKeySize(int size);
+    void checkKeySize(int size);
 
     void checkKeySize(String key);
 

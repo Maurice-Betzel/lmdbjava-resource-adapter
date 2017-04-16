@@ -25,8 +25,6 @@ import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import static java.lang.System.getProperty;

@@ -40,9 +40,15 @@ public class LMDbXAResource implements XAResource {
         this.managedConnection = managedConnection;
     }
 
+    // create / get tx database with xid UID AXGTRIDSIZE+MAXBQUALSIZE as key (write as combined byte[]?)
+    // value consists of the key/value action(s) to be preformed on the original database within this transaction
+    // lmdb supports one key / many values, which fits nicely here. Mabe no need for extra XA DB?
+    // local txn fetched from managedConnection and set on the connectionImpl to perform tx database mods
+    // on commit copy tx database to original database with one local txn.
+
     @Override
     public void commit(Xid xid, boolean onePhase) throws XAException {
-        log.finest("commit()");
+        log.finest("XA commit()");
         if (onePhase) {
             // 1PC
             this.onePhase = true;
@@ -51,37 +57,37 @@ public class LMDbXAResource implements XAResource {
 
     @Override
     public void end(Xid xid, int i) throws XAException {
-        log.finest("end()");
+        log.finest("XA end()");
     }
 
     @Override
     public void forget(Xid xid) throws XAException {
-        log.finest("forget()");
+        log.finest("XA forget()");
 
     }
 
     @Override
     public int getTransactionTimeout() throws XAException {
-        log.finest("getTransactionTimeout()");
+        log.finest("XA getTransactionTimeout()");
         return 0;
     }
 
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException {
-        log.finest("isSameRM()");
+        log.finest("XA isSameRM()");
         return false;
     }
 
     @Override
     public int prepare(Xid xid) throws XAException {
-        log.finest("prepare()");
+        log.finest("XA prepare()");
         // get txn
         return 0;
     }
 
     @Override
     public Xid[] recover(int i) throws XAException {
-        log.finest("recover()");
+        log.finest("XA recover()");
         if (onePhase) {
             return new Xid[0];
         } else {
@@ -91,36 +97,29 @@ public class LMDbXAResource implements XAResource {
 
     @Override
     public void rollback(Xid xid) throws XAException {
-        log.finest("rollback()");
+        log.finest("XA rollback()");
 
     }
 
     @Override
     public boolean setTransactionTimeout(int i) throws XAException {
-        log.finest("setTransactionTimeout()");
+        log.finest("XA setTransactionTimeout()");
         return false;
     }
 
     @Override
     public void start(Xid xid, int i) throws XAException {
-        log.finest("start()");
+        log.finest("XA start()");
         if (i == TMNOFLAGS) {
-            log.finest("TMNOFLAGS");
-            // create / get tx database with xid UID AXGTRIDSIZE+MAXBQUALSIZE as key (write as combined byte[]?)
-            // value consists of the key/value action(s) to be preformed on the original database within this transaction
-            // lmdb supports one key / many values, which fits nicely here. Mabe no need for extra XA DB?
-            // local txn fetched from managedConnection and set on the connectionImpl to perform tx database mods
-            // on commit copy tx database to original database with one local txn.
+            log.finest("XA TMNOFLAGS");
         } else if (i == TMJOIN) {
-            log.finest("TMJOIN");
+            log.finest("XA TMJOIN");
         } else if (i == TMRESUME) {
-            log.finest("TMRESUME");
+            log.finest("XA TMRESUME");
         } else {
-            log.finest("UNKNOWN");
+            throw new IllegalArgumentException("Unknown XA resource flag: " + i);
         }
-
-        //managedConnection.getConnection()
-
+        managedConnection.setXaResourceFlag(i);
         xids.add(xid);
     }
 

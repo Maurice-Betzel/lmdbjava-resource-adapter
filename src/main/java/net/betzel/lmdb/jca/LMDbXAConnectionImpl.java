@@ -15,27 +15,26 @@
  */
 package net.betzel.lmdb.jca;
 
+import org.lmdbjava.Dbi;
+import org.lmdbjava.Txn;
+
+import javax.resource.spi.ConnectionRequestInfo;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 import static java.nio.ByteBuffer.allocateDirect;
 import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.util.logging.Logger;
-
-import org.lmdbjava.*;
-
-import javax.resource.spi.ConnectionRequestInfo;
 
 /**
  * LMDbConnectionImpl
  *
  * @version $Revision: $
  */
-public class LMDbConnectionImpl implements LMDbConnection {
+public class LMDbXAConnectionImpl implements LMDbConnection {
     /**
      * The logger
      */
-    private static Logger log = Logger.getLogger(LMDbConnectionImpl.class.getName());
+    private static Logger log = Logger.getLogger(LMDbXAConnectionImpl.class.getName());
 
     /**
      * The database
@@ -58,7 +57,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
      * @param managedConnection        LMDbManagedConnection
      * @param managedConnectionFactory LMDbManagedConnectionFactory
      */
-    public LMDbConnectionImpl(Dbi<ByteBuffer> dbi, LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
+    public LMDbXAConnectionImpl(Dbi<ByteBuffer> dbi, LMDbManagedConnection managedConnection, LMDbManagedConnectionFactory managedConnectionFactory) {
         this.dbi = dbi;
         this.managedConnection = managedConnection;
         this.managedConnectionFactory = managedConnectionFactory;
@@ -190,7 +189,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        LMDbConnectionImpl that = (LMDbConnectionImpl) o;
+        LMDbXAConnectionImpl that = (LMDbXAConnectionImpl) o;
 
         return this.getDatabaseName().equals(that.getDatabaseName());
     }
