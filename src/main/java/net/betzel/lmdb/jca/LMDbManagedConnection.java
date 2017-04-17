@@ -77,9 +77,7 @@ public class LMDbManagedConnection implements ManagedConnection {
 
     private ConnectionRequestInfo cxRequestInfo;
 
-    private XAResource xaResource;
-
-    private int xaResourceFlag = -1;
+    private LMDbXAResource xaResource;
 
     private LocalTransaction txResource;
 
@@ -109,19 +107,19 @@ public class LMDbManagedConnection implements ManagedConnection {
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
         if (cxRequestInfo.equals(this.cxRequestInfo)) {
-            if (xaResourceFlag == -1) {
-                log.finest("getConnection() without transaction context");
-                LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-                Dbi<ByteBuffer> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
-                LMDbConnection connection = new LMDbConnectionImpl(dbi, this, managedConnectionFactory);
-                connections.add(connection);
-                return connection;
-            } else {
+            if (xaResource.hasAssociatedTransaction()) {
                 log.finest("getConnection() within transaction context");
                 LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
                 Dbi<ByteBuffer> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
                 Dbi<ByteBuffer> dbiTxn = environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbManagedConnectionFactory.txnEnding, DbiFlags.MDB_CREATE);
                 LMDbConnection connection = new LMDbXAConnectionImpl(dbi, dbiTxn, this, managedConnectionFactory);
+                connections.add(connection);
+                return connection;
+            } else {
+                log.finest("getConnection() without transaction context");
+                LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
+                Dbi<ByteBuffer> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
+                LMDbConnection connection = new LMDbConnectionImpl(dbi, this, managedConnectionFactory);
                 connections.add(connection);
                 return connection;
             }
@@ -291,7 +289,4 @@ public class LMDbManagedConnection implements ManagedConnection {
         return environment.txnRead();
     }
 
-    void setXaResourceFlag(int xaResourceFlag) {
-        this.xaResourceFlag = xaResourceFlag;
-    }
 }

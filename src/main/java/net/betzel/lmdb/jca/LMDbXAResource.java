@@ -34,7 +34,12 @@ public class LMDbXAResource implements XAResource {
 
     private List<Xid> xids = Collections.synchronizedList(new ArrayList());
 
+    private Xid associatedTransaction;
+
     private volatile boolean onePhase = false;
+
+    private volatile int tmFlag = -1;
+
 
     public LMDbXAResource(LMDbManagedConnection managedConnection) {
         this.managedConnection = managedConnection;
@@ -53,17 +58,27 @@ public class LMDbXAResource implements XAResource {
             // 1PC
             this.onePhase = true;
         }
+        tmFlag = -1;
     }
 
     @Override
     public void end(Xid xid, int i) throws XAException {
         log.finest("XA end()");
+        if (i == TMSUSPEND) {
+            log.finest("XA TMSUSPEND");
+        } else if (i == TMFAIL) {
+            log.finest("XA TMFAIL");
+        } else if (i == TMSUCCESS) {
+            log.finest("XA TMSUCCESS");
+        } else {
+            throw new IllegalArgumentException("Unknown XA resource flag: " + i);
+        }
     }
 
     @Override
     public void forget(Xid xid) throws XAException {
         log.finest("XA forget()");
-
+        tmFlag = -1;
     }
 
     @Override
@@ -72,6 +87,13 @@ public class LMDbXAResource implements XAResource {
         return 0;
     }
 
+    /*
+    If the target transaction already has another XAResource object participating in the
+    transaction, the Transaction Manager invokes the XAResource.isSameRM method to
+    determine if the specified XAResource represents the same resource manager instance.
+    This information allows the TM to group the resource managers who are performing
+    work on behalf of the transaction.
+    */
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException {
         log.finest("XA isSameRM()");
@@ -98,7 +120,7 @@ public class LMDbXAResource implements XAResource {
     @Override
     public void rollback(Xid xid) throws XAException {
         log.finest("XA rollback()");
-
+        tmFlag = -1;
     }
 
     @Override
@@ -107,20 +129,41 @@ public class LMDbXAResource implements XAResource {
         return false;
     }
 
+    /*
+    Global transactions are associated with a transactional resource via the
+    XAResource.start method, and disassociated from the resource via the
+    XAResource.end method. The resource adapter is responsible for internally
+    maintaining an association between the resource connection object and the XAResource
+    object. At any given time, a connection is associated with a single transaction or it is
+    not associated with any transaction at all.
+     */
+
     @Override
     public void start(Xid xid, int i) throws XAException {
         log.finest("XA start()");
         if (i == TMNOFLAGS) {
             log.finest("XA TMNOFLAGS");
+            tmFlag = i;
+            associatedTransaction = xid;
         } else if (i == TMJOIN) {
             log.finest("XA TMJOIN");
+            tmFlag = i;
         } else if (i == TMRESUME) {
             log.finest("XA TMRESUME");
+            tmFlag = i;
         } else {
+            i = -1;
             throw new IllegalArgumentException("Unknown XA resource flag: " + i);
         }
-        managedConnection.setXaResourceFlag(i);
         xids.add(xid);
+    }
+
+    Xid getAssociatedTransaction() {
+        return associatedTransaction;
+    }
+
+    boolean hasAssociatedTransaction() {
+        return associatedTransaction != null;
     }
 
 }
