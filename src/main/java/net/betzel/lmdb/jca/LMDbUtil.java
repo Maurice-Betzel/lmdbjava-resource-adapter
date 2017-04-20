@@ -1,5 +1,8 @@
 package net.betzel.lmdb.jca;
 
+import org.lmdbjava.LmdbException;
+
+import java.io.*;
 import java.nio.ByteBuffer;
 
 import static java.nio.ByteBuffer.allocateDirect;
@@ -54,6 +57,30 @@ public class LMDbUtil {
         ByteBuffer stringBuffer = allocateDirect(stringBytes.length);
         stringBuffer.put(stringBytes).flip();
         return stringBuffer;
+    }
+
+    public static ByteBuffer serialize(Object object) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutput out = new ObjectOutputStream(bos)) {
+            out.writeObject(object);
+            byte[] bytes = bos.toByteArray();
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+            byteBuffer.put(bytes).flip();
+            return byteBuffer;
+        } catch (IOException e) {
+            throw new LmdbException(e.getMessage(), e);
+        }
+    }
+
+    public static Object deserialize(ByteBuffer byteBuffer) {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(byteBuffer.array());
+             ObjectInput in = new ObjectInputStream(bis)) {
+            return in.readObject();
+        } catch (IOException e) {
+            throw new LmdbException(e.getMessage(), e);
+        } catch (ClassNotFoundException e) {
+            throw new LmdbException(e.getMessage(), e);
+        }
     }
 
 }

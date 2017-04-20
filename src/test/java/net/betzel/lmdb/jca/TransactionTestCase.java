@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * ConnectorTestCase
@@ -78,7 +77,7 @@ public class TransactionTestCase {
     public void testLocalTransaction() throws Throwable {
         log.finest("testLocalTransaction()");
         assertNotNull(testConnectionFactory);
-        String databaseName = "txtest";
+        String databaseName = "testdb1";
         String databaseKey = "testKey";
         String databaseVal = "testVal";
 //        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {

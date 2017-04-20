@@ -15,28 +15,17 @@
  */
 package net.betzel.lmdb.jca;
 
-import java.io.PrintWriter;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionEvent;
-import javax.resource.spi.ConnectionEventListener;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.LocalTransaction;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionMetaData;
-import javax.security.auth.Subject;
-import javax.transaction.xa.XAResource;
-
-import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
 import org.lmdbjava.Txn;
+
+import javax.resource.ResourceException;
+import javax.resource.spi.*;
+import javax.security.auth.Subject;
+import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * LMDbManagedConnection
@@ -70,12 +59,16 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     private Set<LMDbConnection> connections;
 
+    private LMDbDbi<ByteBuffer> dbi;
+
+    private LMDbDbi<ByteBuffer> dbiTxn;
+
     /**
      * The lmdb environment
      */
     private Env environment;
 
-    private ConnectionRequestInfo cxRequestInfo;
+    private LMDbConnectionRequestInfo connectionRequestInfo;
 
     private LMDbXAResource xaResource;
 
@@ -89,10 +82,11 @@ public class LMDbManagedConnection implements ManagedConnection {
     public LMDbManagedConnection(LMDbManagedConnectionFactory managedConnectionFactory, Env environment, ConnectionRequestInfo cxRequestInfo) {
         this.managedConnectionFactory = managedConnectionFactory;
         this.environment = environment;
-        this.cxRequestInfo = cxRequestInfo;
+        this.connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
         this.connections = new HashSet();
+        createDbi(connectionRequestInfo);
     }
 
     /**
@@ -106,23 +100,10 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
         log.finest("getConnection()");
-        if (cxRequestInfo.equals(this.cxRequestInfo)) {
-            if (xaResource.hasAssociatedTransaction()) {
-                log.finest("getConnection() within transaction context");
-                LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-                Dbi<ByteBuffer> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
-                Dbi<ByteBuffer> dbiTxn = environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbManagedConnectionFactory.txnEnding, DbiFlags.MDB_CREATE);
-                LMDbConnection connection = new LMDbXAConnectionImpl(dbi, dbiTxn, this, managedConnectionFactory);
-                connections.add(connection);
-                return connection;
-            } else {
-                log.finest("getConnection() without transaction context");
-                LMDbConnectionRequestInfo connectionRequestInfo = (LMDbConnectionRequestInfo) cxRequestInfo;
-                Dbi<ByteBuffer> dbi = environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE);
-                LMDbConnection connection = new LMDbConnectionImpl(dbi, this, managedConnectionFactory);
-                connections.add(connection);
-                return connection;
-            }
+        if (cxRequestInfo.equals(connectionRequestInfo)) {
+            LMDbConnection connection = new LMDbConnectionImpl(this, managedConnectionFactory);
+            connections.add(connection);
+            return connection;
         } else {
             throw new IllegalArgumentException("Wrong database connection request!");
         }
@@ -144,7 +125,7 @@ public class LMDbManagedConnection implements ManagedConnection {
             throw new ResourceException("Wrong connection handle");
         }
         LMDbConnection handle = (LMDbConnection) connection;
-        if (cxRequestInfo.equals(handle.getConnectionRequestInfo())) {
+        if (connectionRequestInfo.equals(handle.getConnectionRequestInfo())) {
             handle.setManagedConnection(this);
             connections.add(handle);
         } else {
@@ -172,6 +153,14 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public void destroy() throws ResourceException {
         log.finest("destroy()");
+        if (dbi != null) {
+            dbi.close();
+            dbi = null;
+        }
+        if (dbiTxn != null) {
+            dbiTxn.close();
+            dbiTxn = null;
+        }
     }
 
     /**
@@ -252,9 +241,8 @@ public class LMDbManagedConnection implements ManagedConnection {
      * Returns an <code>javax.transaction.xa.XAresource</code> instance.
      *
      * @return XAResource instance
-     * @throws ResourceException generic exception if operation fails
      */
-    public XAResource getXAResource() throws ResourceException {
+    public LMDbXAResource getXAResource() {
         log.finest("getXAResource()");
         if (xaResource == null) {
             this.xaResource = new LMDbXAResource(this);
@@ -274,18 +262,45 @@ public class LMDbManagedConnection implements ManagedConnection {
     }
 
     public ConnectionRequestInfo getCxRequestInfo() {
-        return cxRequestInfo;
+        log.finest("getCxRequestInfo()");
+        return connectionRequestInfo;
     }
 
     public List<ConnectionEventListener> getListeners() {
+        log.finest("getListeners()");
         return listeners;
     }
 
+    void createDbi(LMDbConnectionRequestInfo connectionRequestInfo) {
+        log.finest("createDbi() " + connectionRequestInfo.getDatabaseName());
+        if (dbi == null) {
+            dbi = new LMDbDatabase(environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE), this);
+        }
+    }
+
+    void createDbiTxn() {
+        log.finest("createDbiTxn()");
+        if (dbiTxn == null) {
+            dbiTxn = new LMDbDatabaseTxn(dbi.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbDbi.TXN, DbiFlags.MDB_CREATE), this);
+        }
+    }
+
+    public LMDbDbi<ByteBuffer> getLMDbDbi() {
+        log.finest("getLMDbDbi()");
+        if (xaResource.hasAssociatedTransaction()) {
+            return dbiTxn;
+        } else {
+            return dbi;
+        }
+    }
+
     Txn getWriteTransaction() {
+        log.finest("getWriteTransaction()");
         return environment.txnWrite();
     }
 
     Txn getReadTransaction() {
+        log.finest("getReadTransaction()");
         return environment.txnRead();
     }
 
