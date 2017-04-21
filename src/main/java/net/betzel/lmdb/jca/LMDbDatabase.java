@@ -75,8 +75,9 @@ public class LMDbDatabase implements LMDbDbi<ByteBuffer> {
     }
 
     @Override
-    public void put(ByteBuffer key, ByteBuffer val) {
+    public boolean put(ByteBuffer key, ByteBuffer val) {
         dbi.put(key, val);
+        return true;
     }
 
     @Override

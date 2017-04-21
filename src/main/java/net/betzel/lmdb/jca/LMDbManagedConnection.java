@@ -15,6 +15,7 @@
  */
 package net.betzel.lmdb.jca;
 
+import org.lmdbjava.CursorIterator;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
 import org.lmdbjava.Txn;
@@ -26,6 +27,9 @@ import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Logger;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.lmdbjava.CursorIterator.IteratorType.FORWARD;
 
 /**
  * LMDbManagedConnection
@@ -86,7 +90,7 @@ public class LMDbManagedConnection implements ManagedConnection {
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
         this.connections = new HashSet();
-        createDbi(connectionRequestInfo);
+        createLMDbDbi(connectionRequestInfo);
     }
 
     /**
@@ -271,17 +275,17 @@ public class LMDbManagedConnection implements ManagedConnection {
         return listeners;
     }
 
-    void createDbi(LMDbConnectionRequestInfo connectionRequestInfo) {
-        log.finest("createDbi() " + connectionRequestInfo.getDatabaseName());
+    void createLMDbDbi(LMDbConnectionRequestInfo connectionRequestInfo) {
+        log.finest("createLMDbDbi() " + connectionRequestInfo.getDatabaseName());
         if (dbi == null) {
             dbi = new LMDbDatabase(environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE), this);
         }
     }
 
-    void createDbiTxn() {
-        log.finest("createDbiTxn()");
+    void createLMDbDbiTxn() {
+        log.finest("createLMDbDbiTxn()");
         if (dbiTxn == null) {
-            dbiTxn = new LMDbDatabaseTxn(dbi.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbDbi.TXN, DbiFlags.MDB_CREATE), this);
+            dbiTxn = new LMDbDatabaseTxn(dbi.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbDbi.TXN, DbiFlags.MDB_CREATE, DbiFlags.MDB_DUPSORT), this);
         }
     }
 
@@ -294,6 +298,14 @@ public class LMDbManagedConnection implements ManagedConnection {
         }
     }
 
+    LMDbDbi<ByteBuffer> getDbi() {
+        return dbi;
+    }
+
+    LMDbDbi<ByteBuffer> getDbiTxn() {
+        return dbiTxn;
+    }
+
     Txn getWriteTransaction() {
         log.finest("getWriteTransaction()");
         return environment.txnWrite();
@@ -302,6 +314,34 @@ public class LMDbManagedConnection implements ManagedConnection {
     Txn getReadTransaction() {
         log.finest("getReadTransaction()");
         return environment.txnRead();
+    }
+
+    void dump() {
+        List<byte[]> dbiNames = environment.getDbiNames();
+        log.warning("DATABASE NAMES");
+        for (byte[] bytes : dbiNames) {
+            log.warning(String.valueOf(UTF_8.decode(ByteBuffer.wrap(bytes))));
+        }
+        log.warning("DBI");
+        try (Txn<ByteBuffer> txn = environment.txnRead()) {
+            try (CursorIterator<ByteBuffer> it = dbi.getDbi().iterate(txn, FORWARD)) {
+                log.warning("DBI has next: " + it.hasNext());
+                for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
+                    log.warning(LMDbUtil.toString(kv.key()));
+                    log.warning(LMDbUtil.toString(kv.val()));
+                }
+            }
+        }
+        log.warning("DBI_TXN");
+        try (Txn<ByteBuffer> txn = environment.txnRead()) {
+            try (CursorIterator<ByteBuffer> it = dbiTxn.getDbi().iterate(txn, FORWARD)) {
+                log.warning("DBI TXN has next: " + it.hasNext());
+                for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
+                    log.warning(LMDbUtil.toString(kv.key()));
+                    log.warning(LMDbUtil.toString(kv.val()));
+                }
+            }
+        }
     }
 
 }

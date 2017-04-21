@@ -59,9 +59,8 @@ public class LMDbUtil {
         return stringBuffer;
     }
 
-    public static ByteBuffer serialize(Object object) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutput out = new ObjectOutputStream(bos)) {
+    public static ByteBuffer toByteBuffer(Object object) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(bos)) {
             out.writeObject(object);
             byte[] bytes = bos.toByteArray();
             ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
@@ -72,10 +71,36 @@ public class LMDbUtil {
         }
     }
 
-    public static Object deserialize(ByteBuffer byteBuffer) {
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(byteBuffer.array());
-             ObjectInput in = new ObjectInputStream(bis)) {
-            return in.readObject();
+    public static Long toLong(ByteBuffer byteBuffer) {
+        return Long.class.cast(byteBuffer.getLong());
+    }
+
+    public static Short toShort(ByteBuffer byteBuffer) {
+        return Short.class.cast(byteBuffer.getShort());
+    }
+
+    public static Float toFloat(ByteBuffer byteBuffer) {
+        return Float.class.cast(byteBuffer.getFloat());
+    }
+
+    public static Double toDouble(ByteBuffer byteBuffer) {
+        return Double.class.cast(byteBuffer.getDouble());
+    }
+
+    public static Integer toInteger(ByteBuffer byteBuffer) {
+        return Integer.class.cast(byteBuffer.getInt());
+    }
+
+    public static String toString(ByteBuffer byteBuffer) {
+        return String.class.cast(String.valueOf(UTF_8.decode(byteBuffer)));
+    }
+
+    public static <T> T toObject(ByteBuffer byteBuffer, Class<T> type) {
+        byte[] buffer = new byte[byteBuffer.remaining()];
+        byteBuffer.get(buffer);
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(buffer); ObjectInput in = new ObjectInputStream(bis)) {
+            Object object = in.readObject();
+            return (T) object;
         } catch (IOException e) {
             throw new LmdbException(e.getMessage(), e);
         } catch (ClassNotFoundException e) {

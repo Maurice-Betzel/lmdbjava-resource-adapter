@@ -34,7 +34,7 @@ public interface LMDbDbi<T> {
 
     Cursor<T> openCursor(Txn<T> txn);
 
-    void put(T key, T val);
+    boolean put(T key, T val);
 
     boolean put(Txn<T> txn, T key, T val,
                 PutFlags... flags);

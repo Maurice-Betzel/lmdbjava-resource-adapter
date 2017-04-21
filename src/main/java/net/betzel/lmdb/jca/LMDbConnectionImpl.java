@@ -76,7 +76,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean put(String key, ByteBuffer val) {
-        log.finest("put() with string key");
+        log.finest("put1()");
         byte[] stringBytes = key.getBytes(UTF_8);
         checkKeySize(stringBytes.length);
         ByteBuffer keyBuffer = allocateDirect(stringBytes.length);
@@ -86,7 +86,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean put(ByteBuffer key, ByteBuffer val) {
-        log.finest("put()");
+        log.finest("put2()");
         boolean isPut = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             isPut = managedConnection.getLMDbDbi().put(txn, key, val);
@@ -98,28 +98,28 @@ public class LMDbConnectionImpl implements LMDbConnection {
     @Override
     public <T> T get(ByteBuffer key, Class<T> type) {
         log.finest("get()");
-        Object value = null;
+        Object object = null;
         try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
             ByteBuffer foundBuffer = managedConnection.getLMDbDbi().get(txn, key);
             if (foundBuffer != null) {
                 if (type == String.class) {
-                    return type.cast(String.valueOf(UTF_8.decode(foundBuffer)));
+                    object = LMDbUtil.toString(foundBuffer);
                 } else if (type == Integer.class) {
-                    return type.cast(foundBuffer.getInt());
+                    object = LMDbUtil.toInteger(foundBuffer);
                 } else if (type == Long.class) {
-                    return type.cast(foundBuffer.getLong());
+                    object = LMDbUtil.toLong(foundBuffer);
                 } else if (type == Float.class) {
-                    return type.cast(foundBuffer.getFloat());
+                    object = LMDbUtil.toFloat(foundBuffer);
                 } else if (type == Short.class) {
-                    return type.cast(foundBuffer.getShort());
+                    object = LMDbUtil.toShort(foundBuffer);
                 } else if (type == Double.class) {
-                    return type.cast(foundBuffer.getDouble());
+                    object = LMDbUtil.toDouble(foundBuffer);
                 } else {
-                    throw new IllegalArgumentException("Type not supported: " + type.getCanonicalName());
+                    object = LMDbUtil.toObject(foundBuffer, type);
                 }
             }
         }
-        return null;
+        return (T) object;
     }
 
     @Override
@@ -168,6 +168,11 @@ public class LMDbConnectionImpl implements LMDbConnection {
     }
 
     @Override
+    public void dump() {
+        managedConnection.dump();
+    }
+
+    @Override
     public void close() {
         log.finest("close()");
         if (managedConnection != null) {
@@ -185,6 +190,8 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
         return this.getDatabaseName().equals(that.getDatabaseName());
     }
+
+
 
     @Override
     public int hashCode() {

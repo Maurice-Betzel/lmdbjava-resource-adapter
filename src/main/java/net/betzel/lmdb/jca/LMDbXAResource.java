@@ -15,9 +15,14 @@
  */
 package net.betzel.lmdb.jca;
 
+import org.lmdbjava.CursorIterator;
+import org.lmdbjava.Dbi;
+import org.lmdbjava.Txn;
+
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +57,41 @@ public class LMDbXAResource implements XAResource {
             // 1PC
             this.onePhase = true;
         }
+        Dbi<ByteBuffer> dbi = managedConnection.getLMDbDbi().getDbi();
+        Dbi<ByteBuffer> dbiTxn = managedConnection.getDbiTxn().getDbi();
+        // one txn for all following ops
+        try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
+            ByteBuffer key = LMDbUtil.toByteBuffer(xid);
+            try (CursorIterator<ByteBuffer> cursorIterator = dbiTxn.iterate(txn, key, CursorIterator.IteratorType.FORWARD)) {
+                while (cursorIterator.hasNext()) {
+                    CursorIterator.KeyVal<ByteBuffer> keyVal = cursorIterator.next();
+                    LMDbKeyValueAction action = LMDbUtil.toObject(keyVal.val(), LMDbKeyValueAction.class);
+                    switch (action.getAction()) {
+                        case DELETE:
+                            dbi.delete(txn, action.getKey(), action.getVal());
+                            break;
+                        case PUT:
+                            dbi.put(txn, action.getKey(), action.getVal());
+                            break;
+                        case DROP:
+                            dbi.drop(txn);
+                    }
+                }
+            }
+            dbiTxn.delete(txn, key);
+            txn.commit();
+        }
+//        try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
+//            try (CursorIterator<ByteBuffer> it = dbi.iterate(txn, BACKWARD)) {
+//                for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
+//                    log.finest(LMDbUtil.toString(kv.key()));
+//                    log.finest(LMDbUtil.toString(kv.val()));
+//                }
+//            }
+//        }
+
         tmFlag = -1;
+        associatedTransaction = null;
     }
 
     @Override
@@ -139,7 +178,7 @@ public class LMDbXAResource implements XAResource {
             log.finest("XA TMNOFLAGS");
             tmFlag = i;
             associatedTransaction = xid;
-            managedConnection.createDbiTxn();
+            managedConnection.createLMDbDbiTxn();
         } else if (i == TMJOIN) {
             log.finest("XA TMJOIN");
             tmFlag = i;

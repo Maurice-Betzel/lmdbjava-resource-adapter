@@ -24,7 +24,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
+import javax.resource.ResourceException;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.System.getProperty;
@@ -43,6 +45,14 @@ public class ConnectorTestCase {
     private static Logger log = Logger.getLogger(ConnectorTestCase.class.getName());
 
     private static String deploymentName = "ConnectorTestCase";
+
+    String databaseName1 = "testdb1";
+    String databaseName2 = "testdb2";
+    String databaseName3 = "testdb3";
+
+    String databaseKey = "testKey";
+    String databaseVal = "testVal";
+
     /**
      * Define the deployment
      *
@@ -73,15 +83,12 @@ public class ConnectorTestCase {
     public void testConnectionAndCreateDatabases() throws Throwable {
         log.finest("testConnectionAndCreateDatabases()");
         assertNotNull(testConnectionFactory);
-        String databaseName1 = "testdb1";
         LMDbConnection connection1 = testConnectionFactory.getConnection(databaseName1);
         assertNotNull(connection1);
         assertEquals(connection1.getDatabaseName(), databaseName1);
-        String databaseName2 = "testdb2";
         LMDbConnection connection2 = testConnectionFactory.getConnection(databaseName2);
         assertNotNull(connection2);
         assertEquals(connection2.getDatabaseName(), databaseName2);
-        String databaseName3 = "testdb3";
         LMDbConnection connection3 = testConnectionFactory.getConnection(databaseName3);
         assertNotNull(connection3);
         assertEquals(connection3.getDatabaseName(), databaseName3);
@@ -95,6 +102,27 @@ public class ConnectorTestCase {
         connection4.close();
     }
 
+    @Test
+    public void testGet() throws Throwable {
+        testPut();
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                try(LMDbConnection connection3 = testConnectionFactory.getConnection(databaseName3)) {
+                    log.finest(connection3.get(LMDbUtil.toByteBuffer(databaseKey), String.class));
+                } catch (ResourceException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void testPut() throws Throwable {
+        try(LMDbConnection connection3 = testConnectionFactory.getConnection(databaseName3)) {
+            log.finest(Boolean.toString(connection3.put(databaseKey, LMDbUtil.toByteBuffer(databaseVal))));
+        }
+    }
+
     /**
      * Test creation of system properties
      *
@@ -104,8 +132,7 @@ public class ConnectorTestCase {
     public void testSystemproperties() throws Throwable {
         log.finest("testSystemproperties()");
         assertNotNull(testConnectionFactory);
-        String databaseName = "testdb1";
-        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName1)) {
             assertNotNull(connection);
             assertNotNull(getProperty(DISABLE_EXTRACT_PROP));
             assertTrue(!Boolean.valueOf(getProperty(DISABLE_EXTRACT_PROP)));
@@ -122,10 +149,7 @@ public class ConnectorTestCase {
     public void testPutGetDelete() throws Throwable {
         log.finest("testPutGetDelete()");
         assertNotNull(testConnectionFactory);
-        String databaseName = "testdb1";
-        String databaseKey = "testKey";
-        String databaseVal = "testVal";
-        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName1)) {
             assertNotNull(connection);
             boolean result = connection.put(databaseKey, LMDbUtil.toByteBuffer(databaseVal));
             assertTrue(result);
@@ -158,8 +182,7 @@ public class ConnectorTestCase {
     public void testClear() throws Throwable {
         log.finest("testClear()");
         assertNotNull(testConnectionFactory);
-        String databaseName = "testdb1";
-        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName1)) {
             assertNotNull(connection);
             connection.put(LMDbUtil.toByteBuffer(1), LMDbUtil.toByteBuffer(42));
             connection.put(LMDbUtil.toByteBuffer(2), LMDbUtil.toByteBuffer(42));

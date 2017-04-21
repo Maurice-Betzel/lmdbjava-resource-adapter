@@ -30,20 +30,18 @@ public class LMDbDatabaseTxn implements LMDbDbi<ByteBuffer> {
     @Override
     public boolean delete(ByteBuffer key) {
         Xid xid = managedConnection.getXAResource().getAssociatedTransaction();
-        dbiTxn.put(LMDbUtil.serialize(xid), LMDbUtil.serialize(new LMDbKeyValueAction(LMDbAction.DELETE, key, null)));
+        dbiTxn.put(LMDbUtil.toByteBuffer(xid), LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.DELETE, key, null)));
         return true;
     }
 
     @Override
     public boolean delete(Txn<ByteBuffer> txn, ByteBuffer key) {
-        Xid xid = managedConnection.getXAResource().getAssociatedTransaction();
-        return dbiTxn.put(txn, LMDbUtil.serialize(xid), LMDbUtil.serialize(new LMDbKeyValueAction(LMDbAction.DELETE, key, null)));
+        return dbiTxn.delete(txn, key);
     }
 
     @Override
     public boolean delete(Txn<ByteBuffer> txn, ByteBuffer key, ByteBuffer val) {
-        Xid xid = managedConnection.getXAResource().getAssociatedTransaction();
-        return dbiTxn.put(txn, LMDbUtil.serialize(xid), LMDbUtil.serialize(new LMDbKeyValueAction(LMDbAction.DELETE, key, val)));
+        return dbiTxn.delete(txn, key, val);
     }
 
     @Override
@@ -82,15 +80,16 @@ public class LMDbDatabaseTxn implements LMDbDbi<ByteBuffer> {
     }
 
     @Override
-    public void put(ByteBuffer key, ByteBuffer val) {
+    public boolean put(ByteBuffer key, ByteBuffer val) {
         Xid xid = managedConnection.getXAResource().getAssociatedTransaction();
-        dbiTxn.put(LMDbUtil.serialize(xid), LMDbUtil.serialize(new LMDbKeyValueAction(LMDbAction.PUT, key, val)));
+        dbiTxn.put(LMDbUtil.toByteBuffer(xid), LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.PUT, key, val)));
+        return true;
     }
 
     @Override
     public boolean put(Txn<ByteBuffer> txn, ByteBuffer key, ByteBuffer val, PutFlags... flags) {
         Xid xid = managedConnection.getXAResource().getAssociatedTransaction();
-        return dbiTxn.put(txn, LMDbUtil.serialize(xid), LMDbUtil.serialize(new LMDbKeyValueAction(LMDbAction.PUT, key, val)), flags);
+        return dbiTxn.put(txn, LMDbUtil.toByteBuffer(xid), LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.PUT, key, val)), flags);
     }
 
     @Override

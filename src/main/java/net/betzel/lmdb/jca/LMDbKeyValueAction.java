@@ -3,6 +3,8 @@ package net.betzel.lmdb.jca;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
+import static java.nio.ByteBuffer.allocateDirect;
+
 /**
  * Created by mbetzel on 20.04.2017.
  */
@@ -27,11 +29,15 @@ public class LMDbKeyValueAction implements Serializable {
     }
 
     public ByteBuffer getKey() {
-        return ByteBuffer.wrap(key);
+        ByteBuffer byteBuffer = allocateDirect(key.length);
+        byteBuffer.put(key).flip();
+        return byteBuffer;
     }
 
     public ByteBuffer getVal() {
-        return ByteBuffer.wrap(val);
+        ByteBuffer byteBuffer = allocateDirect(val.length);
+        byteBuffer.put(val).flip();
+        return byteBuffer;
     }
 
 }

@@ -44,6 +44,12 @@ public class TransactionTestCase {
 
     private static String deploymentName = "TransactionTestCase";
 
+    String databaseName = "testdb1";
+    String databaseKey1 = "testKey1";
+    String databaseVal1 = "testVal1";
+    String databaseKey2 = "testKey2";
+    String databaseVal2 = "testVal2";
+
     /**
      * Define the deployment
      *
@@ -73,13 +79,12 @@ public class TransactionTestCase {
      *
      * @throws Throwable Thrown if case of an error
      */
+
     @Test
-    public void testLocalTransaction() throws Throwable {
-        log.finest("testLocalTransaction()");
+    public void testTransaction() throws Throwable {
+        log.finest("testTransaction()");
         assertNotNull(testConnectionFactory);
-        String databaseName = "testdb1";
-        String databaseKey = "testKey";
-        String databaseVal = "testVal";
+
 //        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
 //            assertNotNull(connection);
 //            boolean result = connection.put(databaseKey, LMDbUtil.toByteBuffer(databaseVal));
@@ -90,9 +95,32 @@ public class TransactionTestCase {
         assertEquals(userTransaction.getStatus(), Status.STATUS_NO_TRANSACTION);
         userTransaction.begin();
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-            connection.put("testKey", LMDbUtil.toByteBuffer("testValue"));
+            log.finest(connection.getDatabaseName());
+            connection.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
+            connection.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
+            connection.dump();
         }
         userTransaction.commit();
+        // why are the values not there?
+
+
+
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+            assertNotNull(connection);
+            connection.dump();
+            log.finest(connection.getDatabaseName());
+            log.finest(connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class));
+        }
     }
+
+//    @Test
+//    public void getTransaction() throws Throwable {
+//        testTransaction();
+//        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+//            assertNotNull(connection);
+//            log.finest(connection.getDatabaseName());
+//            log.finest(connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class));
+//        }
+//    }
 
 }

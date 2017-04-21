@@ -49,6 +49,8 @@ public interface LMDbConnection extends AutoCloseable {
 
     void checkKeySize(String key);
 
+    void dump();
+
     @Override
     void close();
 
