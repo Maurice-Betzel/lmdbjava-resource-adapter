@@ -59,7 +59,7 @@ public class LMDbXAResource implements XAResource {
             // 1PC
             this.onePhase = true;
         }
-        Dbi<ByteBuffer> dbi = managedConnection.getLMDbDbi().getDbi();
+        Dbi<ByteBuffer> dbi = managedConnection.getDbi().getDbi();
         Dbi<ByteBuffer> dbiTxn = managedConnection.getDbiTxn().getDbi();
         // one txn for all following ops
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
@@ -83,15 +83,6 @@ public class LMDbXAResource implements XAResource {
             dbiTxn.delete(txn, key);
             txn.commit();
         }
-        try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
-            try (CursorIterator<ByteBuffer> it = dbi.iterate(txn, BACKWARD)) {
-                for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
-                    log.finest(LMDbUtil.toString(kv.key()));
-                    log.finest(LMDbUtil.toString(kv.val()));
-                }
-            }
-        }
-
         tmFlag = -1;
         associatedTransaction = null;
     }

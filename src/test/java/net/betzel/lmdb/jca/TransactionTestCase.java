@@ -84,43 +84,17 @@ public class TransactionTestCase {
     public void testTransaction() throws Throwable {
         log.finest("testTransaction()");
         assertNotNull(testConnectionFactory);
-
-//        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-//            assertNotNull(connection);
-//            boolean result = connection.put(databaseKey, LMDbUtil.toByteBuffer(databaseVal));
-//            assertTrue(result);
-//        }
-
         assertNotNull(userTransaction);
         assertEquals(userTransaction.getStatus(), Status.STATUS_NO_TRANSACTION);
         userTransaction.begin();
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-            log.finest(connection.getDatabaseName());
             connection.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
             connection.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
-            connection.dump();
         }
         userTransaction.commit();
-        // why are the values not there?
-
-
-
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-            assertNotNull(connection);
             connection.dump();
-            log.finest(connection.getDatabaseName());
-            log.finest(connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class));
         }
     }
-
-//    @Test
-//    public void getTransaction() throws Throwable {
-//        testTransaction();
-//        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-//            assertNotNull(connection);
-//            log.finest(connection.getDatabaseName());
-//            log.finest(connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class));
-//        }
-//    }
 
 }
