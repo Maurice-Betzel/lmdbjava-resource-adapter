@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static org.lmdbjava.CursorIterator.IteratorType.BACKWARD;
+
 /**
  * Created by mbetzel on 05.04.2017.
  */
@@ -68,7 +70,7 @@ public class LMDbXAResource implements XAResource {
                     LMDbKeyValueAction action = LMDbUtil.toObject(keyVal.val(), LMDbKeyValueAction.class);
                     switch (action.getAction()) {
                         case DELETE:
-                            dbi.delete(txn, action.getKey(), action.getVal());
+                            dbi.delete(txn, LMDbUtil.cloneByteBuffer(action.getKey()), LMDbUtil.cloneByteBuffer(action.getVal()));
                             break;
                         case PUT:
                             dbi.put(txn, action.getKey(), action.getVal());
@@ -81,14 +83,14 @@ public class LMDbXAResource implements XAResource {
             dbiTxn.delete(txn, key);
             txn.commit();
         }
-//        try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
-//            try (CursorIterator<ByteBuffer> it = dbi.iterate(txn, BACKWARD)) {
-//                for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
-//                    log.finest(LMDbUtil.toString(kv.key()));
-//                    log.finest(LMDbUtil.toString(kv.val()));
-//                }
-//            }
-//        }
+        try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
+            try (CursorIterator<ByteBuffer> it = dbi.iterate(txn, BACKWARD)) {
+                for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
+                    log.finest(LMDbUtil.toString(kv.key()));
+                    log.finest(LMDbUtil.toString(kv.val()));
+                }
+            }
+        }
 
         tmFlag = -1;
         associatedTransaction = null;

@@ -71,6 +71,14 @@ public class LMDbUtil {
         }
     }
 
+    public static ByteBuffer cloneByteBuffer(ByteBuffer original) {
+        ByteBuffer clone = (original.isDirect()) ? ByteBuffer.allocateDirect(original.capacity()) : ByteBuffer.allocate(original.capacity());
+        ByteBuffer readOnlyCopy = original.asReadOnlyBuffer();
+        readOnlyCopy.flip();
+        clone.put(readOnlyCopy);
+        return clone;
+    }
+
     public static Long toLong(ByteBuffer byteBuffer) {
         return Long.class.cast(byteBuffer.getLong());
     }
