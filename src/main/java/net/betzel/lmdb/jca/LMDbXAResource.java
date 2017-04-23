@@ -28,8 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.lmdbjava.CursorIterator.IteratorType.BACKWARD;
-
 /**
  * Created by mbetzel on 05.04.2017.
  */
@@ -85,22 +83,25 @@ public class LMDbXAResource implements XAResource {
             }
             dbiTxn.delete(txn, key);
             txn.commit();
+            xids.remove(xid);
+        } catch (Exception e) {
+            throw new XAException("Exception on commit: " + e.getMessage());
         }
         tmFlag = -1;
         associatedTransaction = null;
-        //remove xid
     }
 
     /*
     Global transactions are disassociated from the resource via the
     XAResource.end method.
      */
-
     @Override
     public void end(Xid xid, int i) throws XAException {
         log.finest("XA end()");
         if (i == TMSUSPEND) {
             log.finest("XA TMSUSPEND");
+            tmFlag = i;
+            associatedTransaction = null;
         } else if (i == TMFAIL) {
             log.finest("XA TMFAIL");
         } else if (i == TMSUCCESS) {
@@ -113,6 +114,15 @@ public class LMDbXAResource implements XAResource {
     @Override
     public void forget(Xid xid) throws XAException {
         log.finest("XA forget()");
+        Dbi<ByteBuffer> dbiTxn = managedConnection.getDbiTxn().getDbi();
+        try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
+            ByteBuffer key = LMDbUtil.toByteBuffer(xid);
+            dbiTxn.delete(txn, key);
+            txn.commit();
+            xids.remove(xid);
+        } catch (Exception e) {
+            throw new XAException("Error on forget: " + e.getMessage());
+        }
         tmFlag = -1;
     }
 
@@ -172,11 +182,10 @@ public class LMDbXAResource implements XAResource {
     object. At any given time, a connection is associated with a single transaction or it is
     not associated with any transaction at all.
      */
-
     @Override
     public void start(Xid xid, int i) throws XAException {
         log.finest("XA start()");
-        if(hasAssociatedTransaction()) {
+        if (hasAssociatedTransaction()) {
             throw new XAException("Nested transaction!");
         }
         if (i == TMNOFLAGS) {
@@ -189,6 +198,7 @@ public class LMDbXAResource implements XAResource {
             tmFlag = i;
         } else if (i == TMRESUME) {
             log.finest("XA TMRESUME");
+            associatedTransaction = xid;
             tmFlag = i;
         } else {
             i = -1;
