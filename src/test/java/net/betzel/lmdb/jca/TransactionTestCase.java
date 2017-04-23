@@ -134,42 +134,48 @@ public class TransactionTestCase {
         assertNotNull(userTransaction);
         assertEquals(transactionManager.getStatus(), Status.STATUS_NO_TRANSACTION);
 
-        userTransaction.begin();
+        transactionManager.begin();
 
         try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
             connectionXA.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
             connectionXA.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
-
-            Transaction transaction = transactionManager.suspend();
 
             String value1 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
             assertNull(value1);
             String value2 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
             assertNull(value2);
 
+            Transaction transaction = transactionManager.suspend();
+
             userTransaction.begin();
+            try (LMDbConnection connectionXA2 = testConnectionFactory.getConnection(databaseName)) {
 
-            connectionXA.put(databaseKey3, LMDbUtil.toByteBuffer(databaseVal3));
-            connectionXA.put(databaseKey4, LMDbUtil.toByteBuffer(databaseVal4));
+                connectionXA2.put(databaseKey3, LMDbUtil.toByteBuffer(databaseVal3));
+                connectionXA2.put(databaseKey4, LMDbUtil.toByteBuffer(databaseVal4));
 
+                String value3 = connectionXA2.get(LMDbUtil.toByteBuffer(databaseKey3), String.class);
+                assertNull(value3);
+                String value4 = connectionXA2.get(LMDbUtil.toByteBuffer(databaseKey4), String.class);
+                assertNull(value4);
+            }
             userTransaction.commit();
 
-            String value3 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey3), String.class);
-            assertEquals(databaseVal3, value3);
-            String value4 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey4), String.class);
-            assertEquals(databaseVal4, value4);
+            try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+                String value3 = connection.get(LMDbUtil.toByteBuffer(databaseKey3), String.class);
+                assertEquals(databaseVal3, value3);
+                String value4 = connection.get(LMDbUtil.toByteBuffer(databaseKey4), String.class);
+                assertEquals(databaseVal4, value4);
+            }
 
             transactionManager.resume(transaction);
 
-            transaction.commit();
+            transactionManager.commit();
 
             value1 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
             assertEquals(databaseVal1, value1);
             value2 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
             assertEquals(databaseVal2, value2);
         }
-
-        userTransaction.commit();
 
         userTransaction.begin();
 
