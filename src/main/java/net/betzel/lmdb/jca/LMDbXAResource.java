@@ -70,7 +70,7 @@ public class LMDbXAResource implements XAResource {
                     LMDbKeyValueAction action = LMDbUtil.toObject(keyVal.val(), LMDbKeyValueAction.class);
                     switch (action.getAction()) {
                         case DELETE:
-                            dbi.delete(txn, LMDbUtil.cloneByteBuffer(action.getKey()), LMDbUtil.cloneByteBuffer(action.getVal()));
+                            dbi.delete(txn, action.action.getVal());
                             break;
                         case PUT:
                             dbi.put(txn, action.getKey(), action.getVal());
@@ -85,6 +85,7 @@ public class LMDbXAResource implements XAResource {
         }
         tmFlag = -1;
         associatedTransaction = null;
+        //remove xid
     }
 
     @Override
