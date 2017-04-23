@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * ConnectorTestCase
@@ -86,14 +87,33 @@ public class TransactionTestCase {
         assertNotNull(testConnectionFactory);
         assertNotNull(userTransaction);
         assertEquals(userTransaction.getStatus(), Status.STATUS_NO_TRANSACTION);
+
         userTransaction.begin();
-        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-            connection.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
-            connection.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
+        try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
+            connectionXA.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
+            connectionXA.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
         }
         userTransaction.commit();
+
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-            connection.dump();
+            String value1 = connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
+            assertEquals(value1, databaseVal1);
+            String value2 = connection.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
+            assertEquals(value2, databaseVal2);
+        }
+
+        userTransaction.begin();
+        try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
+            connectionXA.delete(LMDbUtil.toByteBuffer(databaseKey1));
+            connectionXA.delete(LMDbUtil.toByteBuffer(databaseKey2), LMDbUtil.toByteBuffer(databaseVal2));
+        }
+        userTransaction.commit();
+
+        try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
+            String value1 = connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
+            assertNull(value1);
+            String value2 = connection.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
+            assertNull(value2);
         }
     }
 

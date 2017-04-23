@@ -69,8 +69,11 @@ public class LMDbXAResource implements XAResource {
                     CursorIterator.KeyVal<ByteBuffer> keyVal = cursorIterator.next();
                     LMDbKeyValueAction action = LMDbUtil.toObject(keyVal.val(), LMDbKeyValueAction.class);
                     switch (action.getAction()) {
-                        case DELETE:
-                            dbi.delete(txn, action.action.getVal());
+                        case DELETE_KEY:
+                            dbi.delete(txn, action.getKey());
+                            break;
+                        case DELETE_KEY_VALUE:
+                            dbi.delete(txn, action.getKey(), action.getVal());
                             break;
                         case PUT:
                             dbi.put(txn, action.getKey(), action.getVal());
@@ -87,6 +90,11 @@ public class LMDbXAResource implements XAResource {
         associatedTransaction = null;
         //remove xid
     }
+
+    /*
+    Global transactions are disassociated from the resource via the
+    XAResource.end method.
+     */
 
     @Override
     public void end(Xid xid, int i) throws XAException {
@@ -168,10 +176,12 @@ public class LMDbXAResource implements XAResource {
     @Override
     public void start(Xid xid, int i) throws XAException {
         log.finest("XA start()");
+        if(hasAssociatedTransaction()) {
+            throw new XAException("Nested transaction!");
+        }
         if (i == TMNOFLAGS) {
             log.finest("XA TMNOFLAGS");
             tmFlag = i;
-            //hasassocisted throws xaexeption
             associatedTransaction = xid;
             managedConnection.createLMDbDbiTxn();
         } else if (i == TMJOIN) {

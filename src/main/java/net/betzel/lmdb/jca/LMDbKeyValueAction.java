@@ -16,6 +16,12 @@ public class LMDbKeyValueAction implements Serializable {
     private byte[] key;
     private byte[] val;
 
+    public LMDbKeyValueAction(LMDbAction action, ByteBuffer key) {
+        this.action = action.getAction();
+        this.key = new byte[key.remaining()];
+        key.get(this.key);
+    }
+
     public LMDbKeyValueAction(LMDbAction action, ByteBuffer key, ByteBuffer val) {
         this.action = action.getAction();
         this.key = new byte[key.remaining()];
@@ -38,6 +44,10 @@ public class LMDbKeyValueAction implements Serializable {
         ByteBuffer byteBuffer = allocateDirect(val.length);
         byteBuffer.put(val).flip();
         return byteBuffer;
+    }
+
+    public boolean hasVal() {
+        return val != null;
     }
 
 }
