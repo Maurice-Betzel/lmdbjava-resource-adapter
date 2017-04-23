@@ -97,7 +97,7 @@ public class LMDbXAResource implements XAResource {
         } else if (i == TMSUCCESS) {
             log.finest("XA TMSUCCESS");
         } else {
-            throw new IllegalArgumentException("Unknown XA resource flag: " + i);
+            throw new XAException("Unknown XA resource flag: " + i);
         }
     }
 
@@ -170,6 +170,7 @@ public class LMDbXAResource implements XAResource {
         if (i == TMNOFLAGS) {
             log.finest("XA TMNOFLAGS");
             tmFlag = i;
+            //hasassocisted throws xaexeption
             associatedTransaction = xid;
             managedConnection.createLMDbDbiTxn();
         } else if (i == TMJOIN) {
@@ -180,7 +181,7 @@ public class LMDbXAResource implements XAResource {
             tmFlag = i;
         } else {
             i = -1;
-            throw new IllegalArgumentException("Unknown XA resource flag: " + i);
+            throw new XAException("Unknown XA resource flag: " + i);
         }
         xids.add(xid);
     }
