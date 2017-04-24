@@ -24,10 +24,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
-import javax.transaction.Status;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
-import javax.transaction.UserTransaction;
+import javax.resource.ResourceException;
+import javax.transaction.*;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -132,73 +130,73 @@ public class TransactionTestCase {
         assertNotNull(testConnectionFactory);
         assertNotNull(transactionManager);
         assertNotNull(userTransaction);
-        assertEquals(transactionManager.getStatus(), Status.STATUS_NO_TRANSACTION);
 
-        transactionManager.begin();
-
-        try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
-            connectionXA.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
-            connectionXA.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
-
-            String value1 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
-            assertNull(value1);
-            String value2 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
-            assertNull(value2);
-
-            Transaction transaction = transactionManager.suspend();
-
-            userTransaction.begin();
-            try (LMDbConnection connectionXA2 = testConnectionFactory.getConnection(databaseName)) {
-
-                connectionXA2.put(databaseKey3, LMDbUtil.toByteBuffer(databaseVal3));
-                connectionXA2.put(databaseKey4, LMDbUtil.toByteBuffer(databaseVal4));
-
-                String value3 = connectionXA2.get(LMDbUtil.toByteBuffer(databaseKey3), String.class);
-                assertNull(value3);
-                String value4 = connectionXA2.get(LMDbUtil.toByteBuffer(databaseKey4), String.class);
-                assertNull(value4);
-            }
-            userTransaction.commit();
-
-            try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
-                String value3 = connection.get(LMDbUtil.toByteBuffer(databaseKey3), String.class);
-                assertEquals(databaseVal3, value3);
-                String value4 = connection.get(LMDbUtil.toByteBuffer(databaseKey4), String.class);
-                assertEquals(databaseVal4, value4);
-            }
-
-            transactionManager.resume(transaction);
-
-            transactionManager.commit();
-
-            value1 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
-            assertEquals(databaseVal1, value1);
-            value2 = connectionXA.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
-            assertEquals(databaseVal2, value2);
-        }
+        assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
 
         userTransaction.begin();
 
-        try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
-            connectionXA.delete(LMDbUtil.toByteBuffer(databaseKey1));
-            connectionXA.delete(LMDbUtil.toByteBuffer(databaseKey2), LMDbUtil.toByteBuffer(databaseVal2));
-            connectionXA.delete(LMDbUtil.toByteBuffer(databaseKey3));
-            connectionXA.delete(LMDbUtil.toByteBuffer(databaseKey4), LMDbUtil.toByteBuffer(databaseVal4));
-        }
+        assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
+
+        startNewTransaction();
+
+        Transaction transaction = transactionManager.suspend(); // XAResource End / Suspend not called this way
+
+        assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
+
+        userTransaction.begin();
+
+        assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
+
+        startAnotherTransaction();
 
         userTransaction.commit();
 
+        assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
+
+        transactionManager.resume(transaction);
+
+        assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
+
+        userTransaction.commit();
+
+        assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
+
         try (LMDbConnection connection = testConnectionFactory.getConnection(databaseName)) {
             String value1 = connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class);
-            assertNull(value1);
+            assertEquals(databaseVal1, value1);
             String value2 = connection.get(LMDbUtil.toByteBuffer(databaseKey2), String.class);
-            assertNull(value2);
+            assertEquals(databaseVal2, value2);
             String value3 = connection.get(LMDbUtil.toByteBuffer(databaseKey3), String.class);
-            assertNull(value3);
+            assertEquals(databaseVal3, value3);
             String value4 = connection.get(LMDbUtil.toByteBuffer(databaseKey4), String.class);
-            assertNull(value4);
+            assertEquals(databaseVal4, value4);
+            connection.delete(LMDbUtil.toByteBuffer(databaseKey1));
+            connection.delete(LMDbUtil.toByteBuffer(databaseKey2), LMDbUtil.toByteBuffer(databaseVal2));
+            connection.delete(LMDbUtil.toByteBuffer(databaseKey3));
+            connection.delete(LMDbUtil.toByteBuffer(databaseKey4), LMDbUtil.toByteBuffer(databaseVal4));
+            assertNull(connection.get(LMDbUtil.toByteBuffer(databaseKey1), String.class));
+            assertNull(connection.get(LMDbUtil.toByteBuffer(databaseKey2), String.class));
+            assertNull(connection.get(LMDbUtil.toByteBuffer(databaseKey3), String.class));
+            assertNull(connection.get(LMDbUtil.toByteBuffer(databaseKey4), String.class));
         }
+    }
 
+    private void startNewTransaction() throws ResourceException {
+        try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
+            connectionXA.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
+            connectionXA.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
+            assertNull(connectionXA.get(LMDbUtil.toByteBuffer(databaseKey1), String.class));
+            assertNull(connectionXA.get(LMDbUtil.toByteBuffer(databaseKey2), String.class));
+        }
+    }
+
+    private void startAnotherTransaction() throws ResourceException {
+        try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
+            connectionXA.put(databaseKey3, LMDbUtil.toByteBuffer(databaseVal3));
+            connectionXA.put(databaseKey4, LMDbUtil.toByteBuffer(databaseVal4));
+            assertNull(connectionXA.get(LMDbUtil.toByteBuffer(databaseKey3), String.class));
+            assertNull(connectionXA.get(LMDbUtil.toByteBuffer(databaseKey4), String.class));
+        }
     }
 
 }
