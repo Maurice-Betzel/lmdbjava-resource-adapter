@@ -278,14 +278,14 @@ public class LMDbManagedConnection implements ManagedConnection {
     void createLMDbOperations(LMDbConnectionRequestInfo connectionRequestInfo) {
         log.finest("createLMDbOperations() " + connectionRequestInfo.getDatabaseName());
         if (operations == null) {
-            operations = new LMDbOperationsImpl(environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE), this);
+            operations = new LMDbOperationsImpl(environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE));
         }
     }
 
     void createLMDbOperationsTxn() {
         log.finest("createLMDbOperationsTxn()");
         if (operationsTxn == null) {
-            operationsTxn = new LMDbOperationsTxnImpl(operations.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbOperations.TXN, DbiFlags.MDB_CREATE, DbiFlags.MDB_DUPSORT), this);
+            operationsTxn = new LMDbOperationsTxnImpl(operations.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbOperations.TXN, DbiFlags.MDB_CREATE, DbiFlags.MDB_DUPSORT));
         }
     }
 
