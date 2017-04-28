@@ -19,6 +19,7 @@
     </properties>
 
     <dependencies>
+        <!--Ironjacamar test dependencies-->
         <dependency>
             <groupId>org.jboss.ironjacamar</groupId>
             <artifactId>ironjacamar-spec-api</artifactId>
@@ -104,6 +105,20 @@
             <version>${version.org.jboss.ironjacamar}</version>
             <scope>test</scope>
         </dependency>
+        <!--JBoss test dependencies-->
+        <dependency>
+            <groupId>org.jboss.spec.javax.ejb</groupId>
+            <artifactId>jboss-ejb-api_3.2_spec</artifactId>
+            <version>1.0.0.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!--JUnit test dependencies-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -123,8 +138,8 @@
                 <groupId>org.jboss.ironjacamar</groupId>
                 <artifactId>ironjacamar-depchain</artifactId>
                 <version>${version.org.jboss.ironjacamar}</version>
-                <type>pom</type>
                 <scope>import</scope>
+                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>

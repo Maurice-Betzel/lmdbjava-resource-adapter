@@ -2,7 +2,7 @@
     Copyright 2017 Maurice Betzel
 
     Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
+    you may noat use this file except in compliance with the License.
     You may obtain a copy of the License at
 
         http://www.apache.org/licenses/LICENSE-2.0
@@ -15,6 +15,7 @@
  */
 package net.betzel.lmdb.jca;
 
+import net.betzel.lmdb.jca.rar.ejb.NoOpEJB;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -24,14 +25,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.resource.ResourceException;
-import javax.transaction.*;
+import javax.transaction.Status;
+import javax.transaction.Transaction;
+import javax.transaction.TransactionManager;
+import javax.transaction.UserTransaction;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * ConnectorTestCase
@@ -67,8 +70,12 @@ public class TransactionTestCase {
         javaArchive.addPackages(true, Package.getPackage("net.betzel.lmdb.jca"));
         resourceAdapterArchive.addAsLibrary(javaArchive);
         resourceAdapterArchive.addAsManifestResource("META-INF/ironjacamar.xml", "ironjacamar.xml");
+        //resourceAdapterArchive.addAsManifestResource(EmptyAsset.INSTANCE, Path.create("beans.xml"));
         return resourceAdapterArchive;
     }
+
+    @EJB
+    NoOpEJB noOpEJB;
 
     /**
      * Resource
