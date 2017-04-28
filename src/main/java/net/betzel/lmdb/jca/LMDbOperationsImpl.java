@@ -9,12 +9,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * Created by mbetzel on 20.04.2017.
  */
-public class LMDbDatabase implements LMDbDbi<ByteBuffer> {
+public class LMDbOperationsImpl implements LMDbOperations<ByteBuffer> {
 
     private Dbi<ByteBuffer> dbi;
     private LMDbManagedConnection managedConnection;
 
-    public LMDbDatabase(Dbi<ByteBuffer> dbi, LMDbManagedConnection managedConnection) {
+    public LMDbOperationsImpl(Dbi<ByteBuffer> dbi, LMDbManagedConnection managedConnection) {
         this.dbi = dbi;
         this.managedConnection = managedConnection;
     }
@@ -95,7 +95,7 @@ public class LMDbDatabase implements LMDbDbi<ByteBuffer> {
         return dbi.stat(txn);
     }
 
-    @Override
+    //@Override
     public Dbi<ByteBuffer> getDbi() {
         return dbi;
     }

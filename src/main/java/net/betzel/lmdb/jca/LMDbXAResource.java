@@ -57,8 +57,8 @@ public class LMDbXAResource implements XAResource {
             // 1PC
             this.onePhase = true;
         }
-        Dbi<ByteBuffer> dbi = managedConnection.getDbi().getDbi();
-        Dbi<ByteBuffer> dbiTxn = managedConnection.getDbiTxn().getDbi();
+        Dbi<ByteBuffer> dbi = managedConnection.getOperations().getDbi();
+        Dbi<ByteBuffer> dbiTxn = managedConnection.getOperationsTxn().getDbi();
         // one txn for all following ops
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             ByteBuffer key = LMDbUtil.toByteBuffer(xid);
@@ -114,7 +114,7 @@ public class LMDbXAResource implements XAResource {
     @Override
     public void forget(Xid xid) throws XAException {
         log.finest("XA forget()");
-        Dbi<ByteBuffer> dbiTxn = managedConnection.getDbiTxn().getDbi();
+        Dbi<ByteBuffer> dbiTxn = managedConnection.getOperationsTxn().getDbi();
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             ByteBuffer key = LMDbUtil.toByteBuffer(xid);
             dbiTxn.delete(txn, key);
@@ -192,7 +192,7 @@ public class LMDbXAResource implements XAResource {
             log.finest("XA TMNOFLAGS");
             tmFlag = i;
             associatedTransaction = xid;
-            managedConnection.createLMDbDbiTxn();
+            managedConnection.createLMDbOperationsTxn();
         } else if (i == TMJOIN) {
             log.finest("XA TMJOIN");
             tmFlag = i;

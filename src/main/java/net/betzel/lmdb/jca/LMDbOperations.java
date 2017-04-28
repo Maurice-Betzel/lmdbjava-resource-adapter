@@ -2,12 +2,10 @@ package net.betzel.lmdb.jca;
 
 import org.lmdbjava.*;
 
-import java.nio.ByteBuffer;
-
 /**
  * Created by mbetzel on 20.04.2017.
  */
-public interface LMDbDbi<T> {
+public interface LMDbOperations<T> {
 
     public static final String TXN = "Txn";
     
@@ -29,21 +27,18 @@ public interface LMDbDbi<T> {
 
     CursorIterator<T> iterate(Txn<T> txn, CursorIterator.IteratorType type);
 
-    CursorIterator<T> iterate(Txn<T> txn, T key,
-                              CursorIterator.IteratorType type);
+    CursorIterator<T> iterate(Txn<T> txn, T key, CursorIterator.IteratorType type);
 
     Cursor<T> openCursor(Txn<T> txn);
 
     boolean put(T key, T val);
 
-    boolean put(Txn<T> txn, T key, T val,
-                PutFlags... flags);
+    boolean put(Txn<T> txn, T key, T val, PutFlags... flags);
 
-    T reserve(Txn<T> txn, T key, int size,
-              PutFlags... op);
+    T reserve(Txn<T> txn, T key, int size, PutFlags... op);
 
     Stat stat(Txn<T> txn);
 
-    Dbi<ByteBuffer> getDbi();
+    //Dbi<T> getOperations();
 
 }

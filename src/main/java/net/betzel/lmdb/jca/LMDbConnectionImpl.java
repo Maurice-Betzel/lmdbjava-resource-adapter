@@ -58,7 +58,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public String getDatabaseName() {
-        return managedConnection.getLMDbDbi().getName();
+        return managedConnection.getLMDbOperations().getName();
     }
 
     /**
@@ -89,7 +89,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
         log.finest("put2()");
         boolean isPut = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
-            isPut = managedConnection.getLMDbDbi().put(txn, key, val);
+            isPut = managedConnection.getLMDbOperations().put(txn, key, val);
             txn.commit();
         }
         return isPut;
@@ -100,7 +100,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
         log.finest("get()");
         Object object = null;
         try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
-            ByteBuffer foundBuffer = managedConnection.getLMDbDbi().get(txn, key);
+            ByteBuffer foundBuffer = managedConnection.getLMDbOperations().get(txn, key);
             if (foundBuffer != null) {
                 if (type == String.class) {
                     object = LMDbUtil.toString(foundBuffer);
@@ -127,7 +127,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
         log.finest("delete1()");
         boolean isDeleted = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
-            isDeleted = managedConnection.getLMDbDbi().delete(txn, key);
+            isDeleted = managedConnection.getLMDbOperations().delete(txn, key);
             txn.commit();
         }
         return isDeleted;
@@ -138,7 +138,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
         log.finest("delete2()");
         boolean isDeleted = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
-            isDeleted = managedConnection.getLMDbDbi().delete(txn, key, val);
+            isDeleted = managedConnection.getLMDbOperations().delete(txn, key, val);
             txn.commit();
         }
         return isDeleted;
@@ -148,7 +148,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
     public void clear() {
         log.finest("clear()");
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
-            managedConnection.getLMDbDbi().drop(txn);
+            managedConnection.getLMDbOperations().drop(txn);
             txn.commit();
         }
     }
@@ -195,7 +195,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public int hashCode() {
-        return managedConnection.getLMDbDbi().getName().hashCode() * 31;
+        return managedConnection.getLMDbOperations().getName().hashCode() * 31;
     }
 
 }

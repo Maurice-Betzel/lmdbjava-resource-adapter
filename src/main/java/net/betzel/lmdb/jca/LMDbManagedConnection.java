@@ -63,9 +63,9 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     private Set<LMDbConnection> connections;
 
-    private LMDbDbi<ByteBuffer> dbi;
+    private LMDbOperationsImpl operations;
 
-    private LMDbDbi<ByteBuffer> dbiTxn;
+    private LMDbOperationsTxnImpl operationsTxn;
 
     /**
      * The lmdb environment
@@ -90,7 +90,7 @@ public class LMDbManagedConnection implements ManagedConnection {
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
         this.connections = new HashSet();
-        createLMDbDbi(connectionRequestInfo);
+        createLMDbOperations(connectionRequestInfo);
     }
 
     /**
@@ -157,13 +157,13 @@ public class LMDbManagedConnection implements ManagedConnection {
      */
     public void destroy() throws ResourceException {
         log.finest("destroy()");
-        if (dbi != null) {
-            dbi.close();
-            dbi = null;
+        if (operations != null) {
+            operations.close();
+            operations = null;
         }
-        if (dbiTxn != null) {
-            dbiTxn.close();
-            dbiTxn = null;
+        if (operationsTxn != null) {
+            operationsTxn.close();
+            operationsTxn = null;
         }
     }
 
@@ -275,35 +275,36 @@ public class LMDbManagedConnection implements ManagedConnection {
         return listeners;
     }
 
-    void createLMDbDbi(LMDbConnectionRequestInfo connectionRequestInfo) {
-        log.finest("createLMDbDbi() " + connectionRequestInfo.getDatabaseName());
-        if (dbi == null) {
-            dbi = new LMDbDatabase(environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE), this);
+    void createLMDbOperations(LMDbConnectionRequestInfo connectionRequestInfo) {
+        log.finest("createLMDbOperations() " + connectionRequestInfo.getDatabaseName());
+        if (operations == null) {
+            operations = new LMDbOperationsImpl(environment.openDbi(connectionRequestInfo.getDatabaseName(), DbiFlags.MDB_CREATE), this);
         }
     }
 
-    void createLMDbDbiTxn() {
-        log.finest("createLMDbDbiTxn()");
-        if (dbiTxn == null) {
-            dbiTxn = new LMDbDatabaseTxn(dbi.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbDbi.TXN, DbiFlags.MDB_CREATE, DbiFlags.MDB_DUPSORT), this);
+    void createLMDbOperationsTxn() {
+        log.finest("createLMDbOperationsTxn()");
+        if (operationsTxn == null) {
+            operationsTxn = new LMDbOperationsTxnImpl(operations.getDbi(), environment.openDbi(connectionRequestInfo.getDatabaseName() + LMDbOperations.TXN, DbiFlags.MDB_CREATE, DbiFlags.MDB_DUPSORT), this);
         }
     }
 
-    public LMDbDbi<ByteBuffer> getLMDbDbi() {
-        log.finest("getLMDbDbi()");
+    public LMDbOperations<ByteBuffer> getLMDbOperations() {
+        log.finest("getLMDbOperations()");
         if (xaResource.hasAssociatedTransaction()) {
-            return dbiTxn;
+            operationsTxn.setXid(xaResource.getAssociatedTransaction());
+            return operationsTxn;
         } else {
-            return dbi;
+            return operations;
         }
     }
 
-    LMDbDbi<ByteBuffer> getDbi() {
-        return dbi;
+    LMDbOperationsImpl getOperations() {
+        return operations;
     }
 
-    LMDbDbi<ByteBuffer> getDbiTxn() {
-        return dbiTxn;
+    LMDbOperationsTxnImpl getOperationsTxn() {
+        return operationsTxn;
     }
 
     Txn getWriteTransaction() {
@@ -324,7 +325,7 @@ public class LMDbManagedConnection implements ManagedConnection {
         }
         log.warning("DBI");
         try (Txn<ByteBuffer> txn = environment.txnRead()) {
-            try (CursorIterator<ByteBuffer> it = dbi.getDbi().iterate(txn, FORWARD)) {
+            try (CursorIterator<ByteBuffer> it = operations.getDbi().iterate(txn, FORWARD)) {
                 log.warning("DBI has next: " + it.hasNext());
                 for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
                     log.warning(LMDbUtil.toString(kv.key()));
@@ -334,7 +335,7 @@ public class LMDbManagedConnection implements ManagedConnection {
         }
         log.warning("DBI_TXN");
         try (Txn<ByteBuffer> txn = environment.txnRead()) {
-            try (CursorIterator<ByteBuffer> it = dbiTxn.getDbi().iterate(txn, FORWARD)) {
+            try (CursorIterator<ByteBuffer> it = operationsTxn.getDbi().iterate(txn, FORWARD)) {
                 log.warning("DBI TXN has next: " + it.hasNext());
                 for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
                     log.warning(LMDbUtil.toString(kv.key()));
