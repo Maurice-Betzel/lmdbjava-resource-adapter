@@ -23,7 +23,7 @@ import static java.nio.ByteBuffer.allocateDirect;
 /**
  * Created by mbetzel on 20.04.2017.
  */
-public class LMDbKeyValueAction implements Serializable {
+public class LMDbOperation implements Serializable {
 
     private static final long serialVersionUID = 31L;
 
@@ -31,13 +31,13 @@ public class LMDbKeyValueAction implements Serializable {
     private byte[] key;
     private byte[] val;
 
-    public LMDbKeyValueAction(LMDbAction action, ByteBuffer key) {
+    public LMDbOperation(LMDbOperationType action, ByteBuffer key) {
         this.action = action.getAction();
         this.key = new byte[key.remaining()];
         key.get(this.key);
     }
 
-    public LMDbKeyValueAction(LMDbAction action, ByteBuffer key, ByteBuffer val) {
+    public LMDbOperation(LMDbOperationType action, ByteBuffer key, ByteBuffer val) {
         this.action = action.getAction();
         this.key = new byte[key.remaining()];
         this.val = new byte[val.remaining()];
@@ -45,8 +45,8 @@ public class LMDbKeyValueAction implements Serializable {
         val.get(this.val);
     }
 
-    public LMDbAction getAction() {
-        return LMDbAction.parseLMDbAction(action);
+    public LMDbOperationType getAction() {
+        return LMDbOperationType.parseLMDbAction(action);
     }
 
     public ByteBuffer getKey() {

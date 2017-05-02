@@ -65,7 +65,7 @@ public class LMDbXAResource implements XAResource {
             try (CursorIterator<ByteBuffer> cursorIterator = dbiTxn.iterate(txn, key, CursorIterator.IteratorType.FORWARD)) {
                 while (cursorIterator.hasNext()) {
                     CursorIterator.KeyVal<ByteBuffer> keyVal = cursorIterator.next();
-                    LMDbKeyValueAction action = LMDbUtil.toObject(keyVal.val(), LMDbKeyValueAction.class);
+                    LMDbOperation action = LMDbUtil.toObject(keyVal.val(), LMDbOperation.class);
                     switch (action.getAction()) {
                         case DELETE_KEY:
                             dbi.delete(txn, action.getKey());

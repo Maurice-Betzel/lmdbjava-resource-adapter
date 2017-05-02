@@ -45,18 +45,18 @@ public class LMDbOperationsTxnImpl extends LMDbOperationsImpl {
 
     @Override
     public boolean delete(ByteBuffer key) {
-        dbiTxn.put(xid, LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.DELETE_KEY, key)));
+        dbiTxn.put(xid, LMDbUtil.toByteBuffer(new LMDbOperation(LMDbOperationType.DELETE_KEY, key)));
         return true;
     }
 
     @Override
     public boolean delete(Txn<ByteBuffer> txn, ByteBuffer key) {
-        return dbiTxn.put(txn, xid, LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.DELETE_KEY, key)));
+        return dbiTxn.put(txn, xid, LMDbUtil.toByteBuffer(new LMDbOperation(LMDbOperationType.DELETE_KEY, key)));
     }
 
     @Override
     public boolean delete(Txn<ByteBuffer> txn, ByteBuffer key, ByteBuffer val) {
-        return dbiTxn.put(txn, xid, LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.DELETE_KEY_VALUE, key, val)));
+        return dbiTxn.put(txn, xid, LMDbUtil.toByteBuffer(new LMDbOperation(LMDbOperationType.DELETE_KEY_VALUE, key, val)));
     }
 
     @Override
@@ -66,13 +66,13 @@ public class LMDbOperationsTxnImpl extends LMDbOperationsImpl {
 
     @Override
     public boolean put(ByteBuffer key, ByteBuffer val) {
-        dbiTxn.put(xid, LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.PUT, key, val)));
+        dbiTxn.put(xid, LMDbUtil.toByteBuffer(new LMDbOperation(LMDbOperationType.PUT, key, val)));
         return true;
     }
 
     @Override
     public boolean put(Txn<ByteBuffer> txn, ByteBuffer key, ByteBuffer val, PutFlags... flags) {
-        return dbiTxn.put(txn, xid, LMDbUtil.toByteBuffer(new LMDbKeyValueAction(LMDbAction.PUT, key, val)), flags);
+        return dbiTxn.put(txn, xid, LMDbUtil.toByteBuffer(new LMDbOperation(LMDbOperationType.PUT, key, val)), flags);
     }
 
     @Override
