@@ -15,9 +15,10 @@
  */
 package net.betzel.lmdb.jca;
 
-import net.betzel.lmdb.jca.rar.ejb.NoOpEJB;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.jca.arquillian.embedded.Inject;
+import org.jboss.jca.core.spi.mdr.MetadataRepository;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
@@ -25,7 +26,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
-import javax.ejb.EJB;
 import javax.resource.ResourceException;
 import javax.transaction.Status;
 import javax.transaction.Transaction;
@@ -70,12 +70,11 @@ public class TransactionTestCase {
         javaArchive.addPackages(true, Package.getPackage("net.betzel.lmdb.jca"));
         resourceAdapterArchive.addAsLibrary(javaArchive);
         resourceAdapterArchive.addAsManifestResource("META-INF/ironjacamar.xml", "ironjacamar.xml");
-        //resourceAdapterArchive.addAsManifestResource(EmptyAsset.INSTANCE, Path.create("beans.xml"));
         return resourceAdapterArchive;
     }
 
-    @EJB
-    NoOpEJB noOpEJB;
+    @Inject(name = "MDR")
+    private MetadataRepository mdr;
 
     /**
      * Resource

@@ -13,10 +13,28 @@
     <description>Resource Adapter for lmdbjava</description>
 
     <properties>
+        <java.min.version>1.7</java.min.version>
+        <maven.min.version>3.0.0</maven.min.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.org.jboss.ironjacamar>1.2.7.Final</version.org.jboss.ironjacamar>
         <slf4j.version>1.7.25</slf4j.version>
     </properties>
+
+    <prerequisites>
+        <maven>${maven.min.version}</maven>
+    </prerequisites>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jboss.ironjacamar</groupId>
+                <artifactId>ironjacamar-depchain</artifactId>
+                <version>${version.org.jboss.ironjacamar}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!--Ironjacamar test dependencies-->
@@ -105,19 +123,6 @@
             <version>${version.org.jboss.ironjacamar}</version>
             <scope>test</scope>
         </dependency>
-        <!--JBoss test dependencies-->
-        <dependency>
-            <groupId>org.jboss.spec.javax.ejb</groupId>
-            <artifactId>jboss-ejb-api_3.2_spec</artifactId>
-            <version>1.0.0.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <version>1.2</version>
-            <scope>test</scope>
-        </dependency>
         <!--JUnit test dependencies-->
         <dependency>
             <groupId>junit</groupId>
@@ -125,24 +130,13 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <!-- EIS -->
         <dependency>
             <groupId>org.lmdbjava</groupId>
             <artifactId>lmdbjava</artifactId>
             <version>0.0.6-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.jboss.ironjacamar</groupId>
-                <artifactId>ironjacamar-depchain</artifactId>
-                <version>${version.org.jboss.ironjacamar}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <repositories>
         <repository>
@@ -207,6 +201,15 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>${java.min.version}</source>
+                    <target>${java.min.version}</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
