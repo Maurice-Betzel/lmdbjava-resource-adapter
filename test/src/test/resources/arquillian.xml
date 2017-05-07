@@ -7,6 +7,7 @@
     <container qualifier="wildfly">
         <configuration>
             <property name="serverConfig">standalone-full.xml</property>
+            <!--<property name="allowConnectingToRunningServer">true</property>-->
         </configuration>
     </container>
 
