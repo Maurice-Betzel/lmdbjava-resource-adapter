@@ -3,8 +3,11 @@ package transaction;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.FileAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -14,15 +17,14 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.transaction.*;
 
-/**
- * @author Alexis Hassler
- */
 @RunWith(Arquillian.class)
 public class UserTransactionTest {
+
     @Deployment
     public static Archive<?> deploy() {
-        return ShrinkWrap.create(JavaArchive.class)
-            .addAsManifestResource("beans.xml");
+        JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addAsManifestResource("beans.xml");
+        ResourceAdapterArchive resourceAdapterArchive = ShrinkWrap.create(ResourceAdapterArchive.class);
+        return  javaArchive;
     }
 
     @Inject

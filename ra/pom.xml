@@ -149,6 +149,7 @@
                             <goal>rar</goal>
                         </goals>
                         <configuration>
+                            <finalName>lmdbjavara-${project.version}</finalName>
                             <raXmlFile>${project.basedir}/src/main/resources/META-INF/ra.xml</raXmlFile>
                             <raXmlFile>${project.basedir}/src/main/resources/META-INF/ironjacamar.xml</raXmlFile>
                         </configuration>
