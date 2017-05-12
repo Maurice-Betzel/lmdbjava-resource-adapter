@@ -2,19 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>net.betzel.lmdb</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>net.betzel.lmdb</groupId>
-        <artifactId>parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
-    <artifactId>test</artifactId>
+    <artifactId>wildfly</artifactId>
 
     <packaging>war</packaging>
+    <name>lmdbjavara :: wildfly</name>
+    <description>Integration testing the JCA Resource Adapter with the Wildfly enterprise container</description>
 
     <properties>
         <wildfly.version>10.1.0.Final</wildfly.version>
@@ -46,7 +45,15 @@
             <groupId>net.betzel.lmdb</groupId>
             <artifactId>ra</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <type>jar</type>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.betzel.lmdb</groupId>
+            <artifactId>rar</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <type>rar</type>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
@@ -95,10 +102,6 @@
         <testResources>
             <testResource>
                 <directory>src/test/resources</directory>
-                <filtering>true</filtering>
-            </testResource>
-            <testResource>
-                <directory>src/test/resources-wildfly-managed</directory>
                 <filtering>true</filtering>
             </testResource>
         </testResources>

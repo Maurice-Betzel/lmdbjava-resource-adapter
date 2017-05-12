@@ -64,7 +64,7 @@ public class ConnectorTestCase {
         JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class, UUID.randomUUID().toString() + ".jar");
         javaArchive.addPackages(true, Package.getPackage("net.betzel.lmdb.ra"));
         resourceAdapterArchive.addAsLibrary(javaArchive);
-        resourceAdapterArchive.addAsManifestResource("META-INF/ironjacamar.xml", "ironjacamar.xml");
+        resourceAdapterArchive.addAsManifestResource("ironjacamar.xml");
         return resourceAdapterArchive;
     }
 

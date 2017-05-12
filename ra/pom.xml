@@ -9,10 +9,12 @@
         <groupId>net.betzel.lmdb</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>ra</artifactId>
+    <packaging>jar</packaging>
+    <name>lmdbjavara :: ra</name>
+    <description>A JCA Resource Adapter used to integrate lmdbjava with transactional enterprise containers</description>
 
     <dependencyManagement>
         <dependencies>
@@ -119,10 +121,6 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources-filtered</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
@@ -137,24 +135,6 @@
                         <exclude>**/META-INF/*</exclude>
                     </excludes>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-rar-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>package</id>
-                        <goals>
-                            <goal>rar</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>lmdbjavara-${project.version}</finalName>
-                            <raXmlFile>${project.basedir}/src/main/resources/META-INF/ra.xml</raXmlFile>
-                            <raXmlFile>${project.basedir}/src/main/resources/META-INF/ironjacamar.xml</raXmlFile>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
