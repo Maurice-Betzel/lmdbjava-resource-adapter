@@ -18,8 +18,6 @@
     <properties>
         <wildfly.version>10.1.0.Final</wildfly.version>
         <serverProfile>standalone-full.xml</serverProfile>
-        <serverRoot>${project.build.directory}/wildfly-10.1.0.Final</serverRoot>
-        <serverProfile>standalone-full.xml</serverProfile>
         <serverRoot>${project.build.directory}/wildfly-${wildfly.version}</serverRoot>
     </properties>
 
@@ -152,15 +150,6 @@
                     </environmentVariables>
                     <systemPropertyVariables>
                         <arquillian.launch>wildfly</arquillian.launch>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
-                <configuration>
-                    <systemPropertyVariables>
                         <java.util.logging.config.file>
                             src/test/resources/logging.properties
                         </java.util.logging.config.file>
