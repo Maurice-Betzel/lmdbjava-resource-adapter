@@ -29,6 +29,12 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- EIS -->
+        <dependency>
+            <groupId>org.lmdbjava</groupId>
+            <artifactId>lmdbjava</artifactId>
+            <version>0.0.6-SNAPSHOT</version>
+        </dependency>
         <!--Ironjacamar test dependencies-->
         <dependency>
             <groupId>org.jboss.ironjacamar</groupId>

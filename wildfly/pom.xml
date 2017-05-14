@@ -150,9 +150,11 @@
                     </environmentVariables>
                     <systemPropertyVariables>
                         <arquillian.launch>wildfly</arquillian.launch>
-                        <java.util.logging.config.file>
-                            src/test/resources/logging.properties
-                        </java.util.logging.config.file>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <logging.configuration>file:${project.basedir}/src/test/resources/logging.properties</logging.configuration>
+                        <!--<java.util.logging.config.file>-->
+                            <!--src/test/resources/logging.properties-->
+                        <!--</java.util.logging.config.file>-->
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

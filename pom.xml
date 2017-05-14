@@ -37,12 +37,6 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-        <!-- EIS -->
-        <dependency>
-            <groupId>org.lmdbjava</groupId>
-            <artifactId>lmdbjava</artifactId>
-            <version>0.0.6-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <repositories>
