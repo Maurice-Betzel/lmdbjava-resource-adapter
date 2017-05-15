@@ -62,6 +62,7 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
      * @param cxManager ConnectionManager
      */
     public LMDbConnectionFactoryImpl(LMDbManagedConnectionFactory managedConnectionFactory, ConnectionManager cxManager) {
+        log.finest("LMDbConnectionFactoryImpl()");
         this.managedConnectionFactory = managedConnectionFactory;
         this.connectionManager = cxManager;
     }

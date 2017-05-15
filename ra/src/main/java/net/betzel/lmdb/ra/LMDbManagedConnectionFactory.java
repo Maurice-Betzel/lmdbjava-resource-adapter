@@ -89,7 +89,7 @@ public class LMDbManagedConnectionFactory implements ManagedConnectionFactory, R
      * Default constructor
      */
     public LMDbManagedConnectionFactory() {
-
+        log.finest("LMDbManagedConnectionFactory()");
     }
 
     /**

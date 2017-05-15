@@ -6,6 +6,7 @@ import net.betzel.lmdb.ra.LMDbUtil;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -29,6 +30,8 @@ import static org.junit.Assert.*;
 @RunWith(Arquillian.class)
 public class UserTransactionTest {
 
+    private static final Logger LOGGER = Logger.getLogger(UserTransactionTest.class);
+
     String databaseName = "testdb1";
     String databaseKey1 = "testKey1";
     String databaseVal1 = "testVal1";
@@ -47,7 +50,10 @@ public class UserTransactionTest {
             if(file.getName().endsWith(".rar")) {
                 ResourceAdapterArchive resourceAdapterArchive = ShrinkWrap.createFromZipFile(ResourceAdapterArchive.class, file);
                 resourceAdapterArchive.addAsManifestResource("ironjacamar.xml");
-                return  ShrinkWrap.create(EnterpriseArchive.class, UUID.randomUUID().toString() + ".ear").addAsModule(resourceAdapterArchive).addAsLibrary(testJavaArchive);
+                return  ShrinkWrap.create(EnterpriseArchive.class, UUID.randomUUID().toString() + ".ear").
+                        addAsModule(resourceAdapterArchive).
+                        //addAsResource("jboss-deployment-structure.xml").
+                        addAsLibrary(testJavaArchive);
             }
         }
         throw new IllegalArgumentException("Missing resource archive!");
@@ -81,6 +87,8 @@ public class UserTransactionTest {
     @Test
     @InSequence(2)
     public void testTransactionSuspend() throws Throwable {
+        LOGGER.info("Running testTransactionSuspend");
+        LOGGER.trace("Running testTransactionSuspend TRACE");
         //assertNotNull(userTransaction);
 
         //assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
