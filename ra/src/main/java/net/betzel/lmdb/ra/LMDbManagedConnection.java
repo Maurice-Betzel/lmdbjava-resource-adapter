@@ -290,11 +290,12 @@ public class LMDbManagedConnection implements ManagedConnection {
     }
 
     public LMDbOperations<ByteBuffer> getLMDbOperations() {
-        log.finest("getLMDbOperations()");
         if (xaResource.hasAssociatedTransaction()) {
+            log.finest("getLMDbOperations() with TX");
             operationsTxn.setXid(xaResource.getAssociatedTransaction());
             return operationsTxn;
         } else {
+            log.finest("getLMDbOperations() without TX");
             return operations;
         }
     }

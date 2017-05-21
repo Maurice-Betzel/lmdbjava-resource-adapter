@@ -118,8 +118,23 @@
             <logger category="net.betzel.lmdb">
                 <level name="ALL"/>
             </logger>
+            <!--<logger category="org.wildfly.core">-->
+                <!--<level name="ALL"/>-->
+            <!--</logger>-->
+            <!--<logger category="org.jboss.weld">-->
+                <!--<level name="ALL"/>-->
+            <!--</logger>-->
+            <logger category="org.jboss.jca">
+                <level name="DEBUG"/>
+            </logger>
+            <logger category="org.jboss.as.connector">
+                <level name="INFO"/>
+            </logger>
+            <logger category="com.arjuna.ats.jta">
+                <level name="DEBUG"/>
+            </logger>
             <root-logger>
-                <level name="WARN"/>
+                <level name="INFO"/>
                 <handlers>
                     <handler name="CONSOLE"/>
                     <handler name="FILE"/>

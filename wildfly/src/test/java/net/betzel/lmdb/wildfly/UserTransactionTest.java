@@ -88,12 +88,11 @@ public class UserTransactionTest {
     @InSequence(2)
     public void testTransactionSuspend() throws Throwable {
         LOGGER.info("Running testTransactionSuspend");
-        LOGGER.trace("Running testTransactionSuspend TRACE");
         //assertNotNull(userTransaction);
 
         //assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
 
-        //userTransaction.begin();
+        userTransaction.begin();
 
         //assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
 
@@ -117,7 +116,7 @@ public class UserTransactionTest {
 
         //assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
 
-        //userTransaction.commit();
+        userTransaction.commit();
 
         //assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
 
@@ -143,6 +142,7 @@ public class UserTransactionTest {
 
     @Transactional(Transactional.TxType.REQUIRED)
     private void startNewTransaction() throws ResourceException {
+        LOGGER.info("Running startNewTransaction");
         try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
             connectionXA.put(databaseKey1, LMDbUtil.toByteBuffer(databaseVal1));
             connectionXA.put(databaseKey2, LMDbUtil.toByteBuffer(databaseVal2));
@@ -153,6 +153,7 @@ public class UserTransactionTest {
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     private void startAnotherTransaction() throws ResourceException {
+        LOGGER.info("Running startAnotherTransaction");
         try (LMDbConnection connectionXA = testConnectionFactory.getConnection(databaseName)) {
             connectionXA.put(databaseKey3, LMDbUtil.toByteBuffer(databaseVal3));
             connectionXA.put(databaseKey4, LMDbUtil.toByteBuffer(databaseVal4));

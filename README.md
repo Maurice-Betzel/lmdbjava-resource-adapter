@@ -9,6 +9,8 @@ only supporting outbound communication. Therefore all interactions are executed 
 Before running the tests, set the config-property named filePath in the file "ironjacamar.xml" to a folder where the
 database files are allowed to be created.
 
+Wildfly testing only works on Windows OS because auf vm crash with jffi so binaries on linux on RA test deploy.
+
 ### License
 
 This project is licensed under the
