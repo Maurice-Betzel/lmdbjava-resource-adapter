@@ -145,7 +145,7 @@ public class TransactionTestCase {
 
         startNewTransaction();
 
-        Transaction transaction = transactionManager.suspend(); // XAResource End / Suspend not called this way
+        Transaction transaction = transactionManager.suspend(); // Suspend transaction from thread
 
         assertEquals(Status.STATUS_NO_TRANSACTION, transactionManager.getStatus());
 

@@ -24,4 +24,6 @@ public interface LMDbConnectionRequestInfo extends ConnectionRequestInfo {
 
     public String getDatabaseName();
 
+    public String getFilePath();
+
 }

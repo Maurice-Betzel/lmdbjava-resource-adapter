@@ -142,7 +142,11 @@ public class LMDbXAResource implements XAResource {
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException {
         log.finest("XA isSameRM()");
-        return false;
+        if(xaResource instanceof LMDbXAResource) {
+            return managedConnection.getCxRequestInfo().equals(((LMDbXAResource)xaResource).managedConnection.getCxRequestInfo());
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -215,6 +219,10 @@ public class LMDbXAResource implements XAResource {
     boolean hasAssociatedTransaction() {
         log.finest("hasAssociatedTransaction()");
         return associatedTransaction != null;
+    }
+
+    LMDbManagedConnection getManagedConnection() {
+        return managedConnection;
     }
 
 }

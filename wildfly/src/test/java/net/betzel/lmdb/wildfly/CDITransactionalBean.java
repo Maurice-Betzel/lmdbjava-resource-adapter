@@ -18,12 +18,15 @@ import static org.junit.Assert.assertNull;
  * Created by Maurice on 26.05.2017.
  */
 @ApplicationScoped
-public class TransactionalBean {
+public class CDITransactionalBean {
 
-    private static final Logger LOGGER = Logger.getLogger(TransactionalBean.class);
+    private static final Logger LOGGER = Logger.getLogger(CDITransactionalBean.class);
 
     @Inject
     Constants constants;
+
+    @Inject
+    CDITransactionalInnerBean cdiTransactionalInnerBean;
 
     /**
      * Resource
@@ -59,9 +62,9 @@ public class TransactionalBean {
             String value4 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4), String.class);
             assertEquals(constants.DATABASE_VAL_4, value4);
             connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1));
-            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2), LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
+            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2));
             connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3));
-            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4), LMDbUtil.toByteBuffer(constants.DATABASE_VAL_4));
+            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4));
             assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1), String.class));
             assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2), String.class));
             assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3), String.class));
@@ -72,14 +75,32 @@ public class TransactionalBean {
 
     @Transactional(Transactional.TxType.REQUIRED)
     public void startTransaction() throws ResourceException {
-        LOGGER.info("Running startNewTransaction");
+        LOGGER.info("startTransaction");
         storeValues();
     }
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void startAnotherTransaction() throws ResourceException {
-        LOGGER.info("Running startAnotherTransaction");
+        LOGGER.info("startAnotherTransaction");
         storeMoreValues();
     }
+
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void startTransactionWithSuspend() throws ResourceException {
+        LOGGER.info("startTransactionWithSuspend");
+        LOGGER.info("storeValues");
+        try (LMDbConnection connection = testConnectionFactory.getConnection(constants.DATABASE_NAME)) {
+            connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
+            connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
+            cdiTransactionalInnerBean.storeMoreValues();
+        }
+
+    }
+
+//    @Transactional(Transactional.TxType.REQUIRES_NEW)
+//    public void suspendTransaction() throws ResourceException {
+//        LOGGER.info("suspendTransaction");
+//        storeMoreValues();
+//    }
 
 }

@@ -41,6 +41,18 @@
                 </recover-credential>
             </recovery>
         </connection-definition>
+        <connection-definition class-name="net.betzel.lmdb.ra.LMDbManagedConnectionFactory" jndi-name="java:/eis/LMDbConnectionFactory2" pool-name="LMDbConnectionFactory2">
+            <config-property name="filePath">${project.build.directory}/storage/test2.mdb</config-property>
+            <config-property name="fileSize">10485760</config-property>
+            <config-property name="maxReaders">16</config-property>
+            <config-property name="maxDatabases">3</config-property>
+            <recovery>
+                <recover-credential>
+                    <user-name>user</user-name>
+                    <password>password</password>
+                </recover-credential>
+            </recovery>
+        </connection-definition>
     </connection-definitions>
 
     <admin-objects>

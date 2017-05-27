@@ -20,9 +20,11 @@ package net.betzel.lmdb.ra;
  */
 public class LMDbConnectionRequestInfoImpl implements LMDbConnectionRequestInfo {
 
+    private final String filePath;
     private final String databaseName;
 
-    public LMDbConnectionRequestInfoImpl(String databaseName) {
+    public LMDbConnectionRequestInfoImpl(String filePath, String databaseName) {
+        this.filePath = filePath;
         this.databaseName = databaseName;
     }
 
@@ -32,18 +34,34 @@ public class LMDbConnectionRequestInfoImpl implements LMDbConnectionRequestInfo 
     }
 
     @Override
+    public String getFilePath() {
+        return filePath;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         LMDbConnectionRequestInfoImpl that = (LMDbConnectionRequestInfoImpl) o;
 
-        return databaseName.equals(that.databaseName);
+        if (filePath != null ? !filePath.equals(that.filePath) : that.filePath != null) return false;
+        return databaseName != null ? databaseName.equals(that.databaseName) : that.databaseName == null;
     }
 
     @Override
     public int hashCode() {
-        return databaseName.hashCode();
+        int result = filePath != null ? filePath.hashCode() : 0;
+        result = 31 * result + (databaseName != null ? databaseName.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "LMDbConnectionRequestInfoImpl{" +
+                "filePath='" + filePath + '\'' +
+                ", databaseName='" + databaseName + '\'' +
+                '}';
     }
 
 }

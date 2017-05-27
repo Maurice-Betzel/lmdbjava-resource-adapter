@@ -76,7 +76,6 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean put(String key, ByteBuffer val) {
-        log.finest("put1()");
         byte[] stringBytes = key.getBytes(UTF_8);
         checkKeySize(stringBytes.length);
         ByteBuffer keyBuffer = allocateDirect(stringBytes.length);
@@ -86,7 +85,7 @@ public class LMDbConnectionImpl implements LMDbConnection {
 
     @Override
     public boolean put(ByteBuffer key, ByteBuffer val) {
-        log.finest("put2()");
+        log.finest("put()");
         boolean isPut = false;
         try (Txn<ByteBuffer> txn = managedConnection.getWriteTransaction()) {
             isPut = managedConnection.getLMDbOperations().put(txn, key, val);

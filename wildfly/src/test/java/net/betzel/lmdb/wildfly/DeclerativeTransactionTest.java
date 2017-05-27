@@ -1,6 +1,5 @@
 package net.betzel.lmdb.wildfly;
 
-import net.betzel.lmdb.ra.LMDbConnectionFactory;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
@@ -14,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.resource.ResourceException;
 import javax.transaction.*;
@@ -24,14 +24,13 @@ import java.util.UUID;
  * Created by Maurice on 26.05.2017.
  */
 @RunWith(Arquillian.class)
-public class CDITransactionTest {
+public class DeclerativeTransactionTest {
 
-    private static final Logger LOGGER = Logger.getLogger(CDITransactionTest.class);
-
+    private static final Logger LOGGER = Logger.getLogger(DeclerativeTransactionTest.class);
 
     @Deployment
     public static EnterpriseArchive deploy() {
-        JavaArchive testJar = ShrinkWrap.create(JavaArchive.class).addClasses(CDITransactionTest.class, TransactionalBean.class, Constants.class).addAsManifestResource("beans.xml");
+        JavaArchive testJar = ShrinkWrap.create(JavaArchive.class).addClasses(DeclerativeTransactionTest.class, CDITransactionalBean.class, CDITransactionalInnerBean.class, Constants.class).addAsManifestResource("beans.xml");
         File[] files = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
         for(File file: files) {
             if(file.getName().endsWith(".rar")) {
@@ -50,17 +49,26 @@ public class CDITransactionTest {
     Constants constants;
 
     @Inject
-    TransactionalBean transactionalBean;
+    CDITransactionalBean cdiTransactionalBean;
 
     @Resource(mappedName = "java:/TransactionManager")
     TransactionManager transactionManager;
 
     @Test
     @InSequence(0)
-    public void cdi_test() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, ResourceException {
-        transactionalBean.startTransaction();
-        transactionalBean.startAnotherTransaction();
-        transactionalBean.cleanUpDatabase();
+    public void multipleTransactions() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, ResourceException {
+        LOGGER.info("Container managed CDI multiple transactions");
+        cdiTransactionalBean.startTransaction();
+        cdiTransactionalBean.startAnotherTransaction();
+        cdiTransactionalBean.cleanUpDatabase();
     }
+
+    @Test
+    @InSequence(1)
+    public void suspendTransaction() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, ResourceException {
+        cdiTransactionalBean.startTransactionWithSuspend();
+        //cdiTransactionalBean.cleanUpDatabase();
+    }
+
 
 }

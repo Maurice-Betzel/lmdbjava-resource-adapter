@@ -84,7 +84,7 @@ public class LMDbConnectionFactoryImpl implements LMDbConnectionFactory {
     @Override
     public LMDbConnection getConnection(String databaseName) throws ResourceException {
         log.finest("getConnection()");
-        LMDbConnectionRequestInfo connectionRequestInfo = new LMDbConnectionRequestInfoImpl(databaseName);
+        LMDbConnectionRequestInfo connectionRequestInfo = new LMDbConnectionRequestInfoImpl( managedConnectionFactory.getFilePath(), databaseName);
         return (LMDbConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
