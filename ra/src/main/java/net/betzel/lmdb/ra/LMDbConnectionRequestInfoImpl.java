@@ -45,14 +45,14 @@ public class LMDbConnectionRequestInfoImpl implements LMDbConnectionRequestInfo 
 
         LMDbConnectionRequestInfoImpl that = (LMDbConnectionRequestInfoImpl) o;
 
-        if (filePath != null ? !filePath.equals(that.filePath) : that.filePath != null) return false;
-        return databaseName != null ? databaseName.equals(that.databaseName) : that.databaseName == null;
+        if (!filePath.equals(that.filePath)) return false;
+        return databaseName.equals(that.databaseName);
     }
 
     @Override
     public int hashCode() {
-        int result = filePath != null ? filePath.hashCode() : 0;
-        result = 31 * result + (databaseName != null ? databaseName.hashCode() : 0);
+        int result = filePath.hashCode();
+        result = 31 * result + databaseName.hashCode();
         return result;
     }
 

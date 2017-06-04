@@ -43,8 +43,8 @@ public class LMDbTXResource implements LocalTransaction {
     public void begin() throws ResourceException {
         log.finest("begin()");
         ConnectionEvent event = new ConnectionEvent(managedConnection, ConnectionEvent.LOCAL_TRANSACTION_STARTED);
-        for (ConnectionEventListener cel : managedConnection.getListeners()) {
-            cel.connectionClosed(event);
+        for (ConnectionEventListener connectionEventListener : managedConnection.getListeners()) {
+            connectionEventListener.connectionClosed(event);
         }
     }
 
@@ -52,8 +52,8 @@ public class LMDbTXResource implements LocalTransaction {
     public void commit() throws ResourceException {
         log.finest("commit()");
         ConnectionEvent event = new ConnectionEvent(managedConnection, ConnectionEvent.LOCAL_TRANSACTION_COMMITTED);
-        for (ConnectionEventListener cel : managedConnection.getListeners()) {
-            cel.connectionClosed(event);
+        for (ConnectionEventListener connectionEventListener : managedConnection.getListeners()) {
+            connectionEventListener.connectionClosed(event);
         }
     }
 
@@ -61,8 +61,8 @@ public class LMDbTXResource implements LocalTransaction {
     public void rollback() throws ResourceException {
         log.finest("rollback()");
         ConnectionEvent event = new ConnectionEvent(managedConnection, ConnectionEvent.LOCAL_TRANSACTION_ROLLEDBACK);
-        for (ConnectionEventListener cel : managedConnection.getListeners()) {
-            cel.connectionClosed(event);
+        for (ConnectionEventListener connectionEventListener : managedConnection.getListeners()) {
+            connectionEventListener.connectionClosed(event);
         }
     }
 

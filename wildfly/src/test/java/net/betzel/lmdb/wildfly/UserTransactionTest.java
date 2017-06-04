@@ -71,7 +71,7 @@ public class UserTransactionTest {
 
     @Test
     @InSequence(0)
-    public void should_work_with_cdi() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
+    public void cdi() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
         LOGGER.info("Bean managed CDI");
         userTransaction.begin();
         userTransaction.commit();
@@ -79,7 +79,7 @@ public class UserTransactionTest {
 
     @Test
     @InSequence(1)
-    public void should_work_with_jndi() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, NamingException {
+    public void jndi() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, NamingException {
         LOGGER.info("Bean managed JNDI");
         Context context = new InitialContext();
         UserTransaction userTransaction = (UserTransaction) context.lookup("java:comp/UserTransaction");

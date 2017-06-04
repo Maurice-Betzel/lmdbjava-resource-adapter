@@ -55,6 +55,7 @@ public class LMDbXAResource implements XAResource {
         log.finest("XA commit()");
         if (onePhase) {
             // 1PC
+            log.finest("XA commit one phase");
             this.onePhase = true;
         }
         Dbi<ByteBuffer> dbi = managedConnection.getOperations().getDbi();
