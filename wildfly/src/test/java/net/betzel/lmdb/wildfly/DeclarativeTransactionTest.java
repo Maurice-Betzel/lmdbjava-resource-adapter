@@ -1,5 +1,6 @@
 package net.betzel.lmdb.wildfly;
 
+import net.betzel.lmdb.ra.LMDbConnectionFactory;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
@@ -29,7 +30,7 @@ public class DeclarativeTransactionTest {
 
     @Deployment
     public static EnterpriseArchive deploy() {
-        JavaArchive testJar = ShrinkWrap.create(JavaArchive.class).addClasses(DeclarativeTransactionTest.class, CDITransactionalBean.class, CDITransactionalInnerBean.class, Constants.class).addAsManifestResource("beans.xml");
+        JavaArchive testJar = ShrinkWrap.create(JavaArchive.class).addClasses(DeclarativeTransactionTest.class, CDITransactionalBean.class, Constants.class).addAsManifestResource("beans.xml");
         File[] files = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
         for(File file: files) {
             if(file.getName().endsWith(".rar")) {
@@ -50,17 +51,29 @@ public class DeclarativeTransactionTest {
     @Inject
     CDITransactionalBean cdiTransactionalBean;
 
-    @Resource(mappedName = "java:/TransactionManager")
-    TransactionManager transactionManager;
+    @Resource(mappedName = "java:/eis/LMDbConnectionFactory1")
+    private LMDbConnectionFactory connectionFactory1;
 
+    @Resource(mappedName = "java:/eis/LMDbConnectionFactory2")
+    private LMDbConnectionFactory connectionFactory2;
+
+    //TM does one-phase commit (1PC) optimization on the only RM involved in the transaction
     @Test
     @InSequence(0)
-    public void multipleTransactions() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, ResourceException {
+    public void onePhaseCommit() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, ResourceException {
         LOGGER.info("Container managed CDI multiple transactions");
-        cdiTransactionalBean.startTransaction();
-        int status = transactionManager.getStatus();
-        cdiTransactionalBean.startAnotherTransaction();
-        cdiTransactionalBean.cleanUpDatabase();
+        cdiTransactionalBean.requiredTransactionOnePhaseCommit(connectionFactory1);
+        cdiTransactionalBean.assertDatabase(connectionFactory1);
+    }
+
+    //TM does two-phase commit (2PC) optimization on the RMs involved in the transaction
+    @Test
+    @InSequence(1)
+    public void twoPhaseCommit() throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException, ResourceException {
+        LOGGER.info("Container managed CDI multiple transactions");
+        cdiTransactionalBean.requiredTransactionTwoPhaseCommit(connectionFactory1, connectionFactory2);
+        cdiTransactionalBean.assertDatabase(connectionFactory1);
+        cdiTransactionalBean.assertDatabase(connectionFactory2);
     }
 
 //    @Test

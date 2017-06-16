@@ -9,6 +9,9 @@ import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.resource.ResourceException;
+import javax.transaction.Status;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
 import javax.transaction.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -25,82 +28,113 @@ public class CDITransactionalBean {
     @Inject
     Constants constants;
 
-    @Inject
-    CDITransactionalInnerBean cdiTransactionalInnerBean;
+    @Resource(mappedName = "java:/TransactionManager")
+    TransactionManager transactionManager;
 
-    /**
-     * Resource
-     */
-    @Resource(mappedName = "java:/eis/LMDbConnectionFactory")
-    private LMDbConnectionFactory testConnectionFactory;
-
-    public void storeValues() throws ResourceException {
-        LOGGER.info("storeValues");
-        try (LMDbConnection connection = testConnectionFactory.getConnection(constants.DATABASE_NAME)) {
-            connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
-            connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void requiredTransactionOnePhaseCommit(LMDbConnectionFactory testConnectionFactory1) throws ResourceException, SystemException {
+        LOGGER.info("requiredTransactionOnePhaseCommit");
+        assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
+        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+            storeValue1(connection);
+            storeValue2(connection);
+        }
+        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+            storeValue3(connection);
+            storeValue4(connection);
         }
     }
 
-    public void storeMoreValues() throws ResourceException {
-        LOGGER.info("storeMoreValues");
-        try (LMDbConnection connection = testConnectionFactory.getConnection(constants.DATABASE_NAME)) {
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void requiredTransactionTwoPhaseCommit(LMDbConnectionFactory testConnectionFactory1, LMDbConnectionFactory testConnectionFactory2) throws ResourceException, SystemException {
+        LOGGER.info("requiredTransactionTwoPhaseCommit");
+        assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
+        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+            storeValue1(connection);
+            storeValue2(connection);
+            storeValue3(connection);
+            storeValue4(connection);
+        }
+        try (LMDbConnection connection = testConnectionFactory2.getConnection(constants.DATABASE_NAME)) {
+            connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
+            connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
             connection.put(constants.DATABASE_KEY_3, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_3));
             connection.put(constants.DATABASE_KEY_4, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_4));
         }
     }
 
-    public void cleanUpDatabase() throws ResourceException {
-        LOGGER.info("cleanUpDatabase");
+    public void assertDatabase(LMDbConnectionFactory testConnectionFactory) throws ResourceException {
         try (LMDbConnection connection = testConnectionFactory.getConnection(constants.DATABASE_NAME)) {
-            String value1 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1), String.class);
-            assertEquals(constants.DATABASE_VAL_1, value1);
-            String value2 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2), String.class);
-            assertEquals(constants.DATABASE_VAL_2, value2);
-            String value3 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3), String.class);
-            assertEquals(constants.DATABASE_VAL_3, value3);
-            String value4 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4), String.class);
-            assertEquals(constants.DATABASE_VAL_4, value4);
-            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1));
-            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2));
-            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3));
-            connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4));
-            assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1), String.class));
-            assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2), String.class));
-            assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3), String.class));
-            assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4), String.class));
+            assertDatabaseValue1(connection);
+            assertDatabaseValue2(connection);
+            assertDatabaseValue3(connection);
+            assertDatabaseValue4(connection);
         }
     }
 
-
-    @Transactional(Transactional.TxType.REQUIRED)
-    public void startTransaction() throws ResourceException {
-        LOGGER.info("startTransaction");
-        storeValues();
+    public void storeValue1(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("storeValue1");
+        connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void startAnotherTransaction() throws ResourceException {
-        LOGGER.info("startAnotherTransaction");
-        storeMoreValues();
+    public void storeValue2(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("storeValue2");
+        connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
     }
 
-    @Transactional(Transactional.TxType.REQUIRED)
-    public void startTransactionWithSuspend() throws ResourceException {
-        LOGGER.info("startTransactionWithSuspend");
-        LOGGER.info("storeValues");
-        try (LMDbConnection connection = testConnectionFactory.getConnection(constants.DATABASE_NAME)) {
-            connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
-            connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
-            cdiTransactionalInnerBean.storeMoreValues();
-        }
-
+    public void storeValue3(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("storeValue3");
+        connection.put(constants.DATABASE_KEY_3, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_3));
     }
 
-//    @Transactional(Transactional.TxType.REQUIRES_NEW)
-//    public void suspendTransaction() throws ResourceException {
-//        LOGGER.info("suspendTransaction");
-//        storeMoreValues();
+    public void storeValue4(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("storeValue4");
+        connection.put(constants.DATABASE_KEY_4, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_4));
+    }
+
+    public void assertDatabaseValue1(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("assertDatabaseValue1");
+        String value1 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1), String.class);
+        assertEquals(constants.DATABASE_VAL_1, value1);
+        connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1));
+        assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_1), String.class));
+    }
+
+    public void assertDatabaseValue2(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("assertDatabaseValue2");
+        String value1 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2), String.class);
+        assertEquals(constants.DATABASE_VAL_2, value1);
+        connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2));
+        assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_2), String.class));
+    }
+
+    public void assertDatabaseValue3(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("assertDatabaseValue3");
+        String value1 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3), String.class);
+        assertEquals(constants.DATABASE_VAL_3, value1);
+        connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3));
+        assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_3), String.class));
+    }
+
+    public void assertDatabaseValue4(LMDbConnection connection) throws ResourceException {
+        LOGGER.info("assertDatabaseValue4");
+        String value1 = connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4), String.class);
+        assertEquals(constants.DATABASE_VAL_4, value1);
+        connection.delete(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4));
+        assertNull(connection.get(LMDbUtil.toByteBuffer(constants.DATABASE_KEY_4), String.class));
+    }
+
+
+
+//       public void requiredLocalTransaction() throws ResourceException, SystemException {
+//        LOGGER.info("requiredLocalTransaction");
+//        assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
+//        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+//            connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
+//            connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
+//            connection.put(constants.DATABASE_KEY_3, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_3));
+//            connection.put(constants.DATABASE_KEY_4, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_4));
+//        }
 //    }
 
 }

@@ -29,8 +29,8 @@
     <transaction-support>XATransaction</transaction-support>
 
     <connection-definitions>
-        <connection-definition class-name="net.betzel.lmdb.ra.LMDbManagedConnectionFactory" jndi-name="java:/eis/LMDbConnectionFactory" pool-name="LMDbConnectionFactory">
-            <config-property name="filePath">${project.build.directory}/storage/test.mdb</config-property>
+        <connection-definition class-name="net.betzel.lmdb.ra.LMDbManagedConnectionFactory" jndi-name="java:/eis/LMDbConnectionFactory1" pool-name="LMDbConnectionFactory1">
+            <config-property name="filePath">${project.build.directory}/storage/test1.mdb</config-property>
             <config-property name="fileSize">10485760</config-property>
             <config-property name="maxReaders">16</config-property>
             <config-property name="maxDatabases">3</config-property>

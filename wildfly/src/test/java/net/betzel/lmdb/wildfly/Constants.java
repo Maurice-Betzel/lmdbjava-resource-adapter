@@ -8,7 +8,7 @@ import javax.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class Constants {
 
-    public static final String DATABASE_NAME = "testdb1";
+    public static final String DATABASE_NAME = "testdb";
     public static final String DATABASE_KEY_1 = "testKey1";
     public static final String DATABASE_VAL_1 = "testVal1";
     public static final String DATABASE_KEY_2 = "testKey2";
