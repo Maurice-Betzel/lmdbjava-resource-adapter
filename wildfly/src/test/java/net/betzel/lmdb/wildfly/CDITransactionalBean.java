@@ -14,6 +14,10 @@ import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 import javax.transaction.Transactional;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+
+import static java.nio.ByteBuffer.allocateDirect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -32,36 +36,47 @@ public class CDITransactionalBean {
     TransactionManager transactionManager;
 
     @Transactional(Transactional.TxType.REQUIRED)
-    public void requiredTransactionOnePhaseCommit(LMDbConnectionFactory testConnectionFactory1) throws ResourceException, SystemException {
+    public void requiredTransactionOnePhaseCommit(LMDbConnectionFactory connectionFactory) throws ResourceException, SystemException {
         LOGGER.info("requiredTransactionOnePhaseCommit");
         assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
-        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+        try (LMDbConnection connection = connectionFactory.getConnection(constants.DATABASE_NAME)) {
             storeValue1(connection);
             storeValue2(connection);
         }
-        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+        try (LMDbConnection connection = connectionFactory.getConnection(constants.DATABASE_NAME)) {
             storeValue3(connection);
             storeValue4(connection);
         }
     }
 
     @Transactional(Transactional.TxType.REQUIRED)
-    public void requiredTransactionTwoPhaseCommit(LMDbConnectionFactory testConnectionFactory1, LMDbConnectionFactory testConnectionFactory2) throws ResourceException, SystemException {
+    public void requiredTransactionTwoPhaseCommit(LMDbConnectionFactory connectionFactory1, LMDbConnectionFactory connectionFactory2) throws ResourceException, SystemException {
         LOGGER.info("requiredTransactionTwoPhaseCommit");
         assertEquals(Status.STATUS_ACTIVE, transactionManager.getStatus());
-        try (LMDbConnection connection = testConnectionFactory1.getConnection(constants.DATABASE_NAME)) {
+        try (LMDbConnection connection = connectionFactory1.getConnection(constants.DATABASE_NAME)) {
             storeValue1(connection);
             storeValue2(connection);
             storeValue3(connection);
             storeValue4(connection);
         }
-        try (LMDbConnection connection = testConnectionFactory2.getConnection(constants.DATABASE_NAME)) {
-            connection.put(constants.DATABASE_KEY_1, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_1));
-            connection.put(constants.DATABASE_KEY_2, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_2));
-            connection.put(constants.DATABASE_KEY_3, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_3));
-            connection.put(constants.DATABASE_KEY_4, LMDbUtil.toByteBuffer(constants.DATABASE_VAL_4));
+        try (LMDbConnection connection = connectionFactory2.getConnection(constants.DATABASE_NAME)) {
+            storeValue1(connection);
+            storeValue2(connection);
+            storeValue3(connection);
+            storeValue4(connection);
         }
     }
+
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void requiredTransactionOnePhaseCommitOverflow(LMDbConnectionFactory connectionFactory1) throws ResourceException, SystemException {
+        LOGGER.info("requiredTransactionOnePhaseCommitOverflow");
+        try (LMDbConnection connection = connectionFactory1.getConnection(constants.DATABASE_NAME)) {
+            ByteBuffer byteBuffer = allocateDirect(10000000);
+            byteBuffer.flip();
+            connection.put("key", byteBuffer);
+        }
+    }
+
 
     public void assertDatabase(LMDbConnectionFactory testConnectionFactory) throws ResourceException {
         try (LMDbConnection connection = testConnectionFactory.getConnection(constants.DATABASE_NAME)) {

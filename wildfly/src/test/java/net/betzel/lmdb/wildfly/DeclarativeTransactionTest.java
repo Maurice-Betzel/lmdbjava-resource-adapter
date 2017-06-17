@@ -1,6 +1,8 @@
 package net.betzel.lmdb.wildfly;
 
+import net.betzel.lmdb.ra.LMDbConnection;
 import net.betzel.lmdb.ra.LMDbConnectionFactory;
+import net.betzel.lmdb.ra.LMDbUtil;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
@@ -18,7 +20,10 @@ import javax.inject.Inject;
 import javax.resource.ResourceException;
 import javax.transaction.*;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.UUID;
+
+import static java.nio.ByteBuffer.allocateDirect;
 
 /**
  * Created by Maurice on 26.05.2017.

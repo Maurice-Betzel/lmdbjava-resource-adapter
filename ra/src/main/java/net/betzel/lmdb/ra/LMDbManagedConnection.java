@@ -15,10 +15,7 @@
  */
 package net.betzel.lmdb.ra;
 
-import org.lmdbjava.CursorIterator;
-import org.lmdbjava.DbiFlags;
-import org.lmdbjava.Env;
-import org.lmdbjava.Txn;
+import org.lmdbjava.*;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.*;
@@ -318,7 +315,34 @@ public class LMDbManagedConnection implements ManagedConnection {
         return environment.txnRead();
     }
 
+    // always returning the same values independent of DBI fill state (tested on windows so far)
+    boolean hasRemainingEnvironmentSpace(long bytesRequired) {
+        Stat stat = environment.stat();
+        long bytesUsed = stat.pageSize * (stat.leafPages + stat.branchPages + stat.overflowPages);
+        long bytesRemaining = environment.info().mapSize - bytesUsed;
+        long pagesLeft = bytesRemaining / stat.pageSize;
+        long pagesRequired = (long) Math.ceil((double) bytesRequired / (double) stat.pageSize);
+        dump();
+        return pagesLeft > pagesRequired;
+    }
+
     void dump() {
+        log.warning("ENV");
+        Stat envStat = environment.stat();
+        log.warning("Depth: " + envStat.depth);
+        log.warning("Entries: " + envStat.entries);
+        log.warning("Page size: " + envStat.pageSize);
+        log.warning("Leaf pages: " + envStat.leafPages);
+        log.warning("Branch pages: " + envStat.branchPages);
+        log.warning("Overflow pages: " + envStat.overflowPages);
+        EnvInfo envInfo = environment.info();
+        log.warning("Map size: " + envInfo.mapSize);
+        log.warning("Map address: " + envInfo.mapAddress);
+        log.warning("Num readers: " + envInfo.numReaders);
+        log.warning("Max readers: " + envInfo.maxReaders);
+        log.warning("Last page number: " + envInfo.lastPageNumber);
+        log.warning("Last transaction ID: " + envInfo.lastTransactionId);
+
         List<byte[]> dbiNames = environment.getDbiNames();
         log.warning("DATABASE NAMES");
         for (byte[] bytes : dbiNames) {
@@ -326,6 +350,13 @@ public class LMDbManagedConnection implements ManagedConnection {
         }
         log.warning("DBI");
         try (Txn<ByteBuffer> txn = environment.txnRead()) {
+            Stat dbiStat = operations.getDbi().stat(txn);
+            log.warning("Depth: " + dbiStat.depth);
+            log.warning("Entries: " + dbiStat.entries);
+            log.warning("Page size: " + dbiStat.pageSize);
+            log.warning("Leaf pages: " + dbiStat.leafPages);
+            log.warning("Branch pages: " + dbiStat.branchPages);
+            log.warning("Overflow pages: " + dbiStat.overflowPages);
             try (CursorIterator<ByteBuffer> it = operations.getDbi().iterate(txn, FORWARD)) {
                 log.warning("DBI has next: " + it.hasNext());
                 for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {
@@ -336,6 +367,13 @@ public class LMDbManagedConnection implements ManagedConnection {
         }
         log.warning("DBI_TXN");
         try (Txn<ByteBuffer> txn = environment.txnRead()) {
+            Stat dbiStat = operationsTxn.getDbi().stat(txn);
+            log.warning("Depth: " + dbiStat.depth);
+            log.warning("Entries: " + dbiStat.entries);
+            log.warning("Page size: " + dbiStat.pageSize);
+            log.warning("Leaf pages: " + dbiStat.leafPages);
+            log.warning("Branch pages: " + dbiStat.branchPages);
+            log.warning("Overflow pages: " + dbiStat.overflowPages);
             try (CursorIterator<ByteBuffer> it = operationsTxn.getDbi().iterate(txn, FORWARD)) {
                 log.warning("DBI TXN has next: " + it.hasNext());
                 for (final CursorIterator.KeyVal<ByteBuffer> kv : it.iterable()) {

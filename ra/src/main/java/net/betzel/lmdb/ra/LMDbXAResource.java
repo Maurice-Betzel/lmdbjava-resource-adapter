@@ -15,9 +15,7 @@
  */
 package net.betzel.lmdb.ra;
 
-import org.lmdbjava.CursorIterator;
-import org.lmdbjava.Dbi;
-import org.lmdbjava.Txn;
+import org.lmdbjava.*;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -45,7 +43,9 @@ public class LMDbXAResource implements XAResource {
 
     private volatile int tmFlag = -1;
 
-
+    /*
+    combined implementation of 2PC protocol with 1PC optimization
+     */
     public LMDbXAResource(LMDbManagedConnection managedConnection) {
         this.managedConnection = managedConnection;
     }
@@ -66,16 +66,16 @@ public class LMDbXAResource implements XAResource {
             try (CursorIterator<ByteBuffer> cursorIterator = dbiTxn.iterate(txn, key, CursorIterator.IteratorType.FORWARD)) {
                 while (cursorIterator.hasNext()) {
                     CursorIterator.KeyVal<ByteBuffer> keyVal = cursorIterator.next();
-                    LMDbOperation action = LMDbUtil.toObject(keyVal.val(), LMDbOperation.class);
-                    switch (action.getAction()) {
+                    LMDbOperation operation = LMDbUtil.toObject(keyVal.val(), LMDbOperation.class);
+                    switch (operation.getAction()) {
                         case DELETE_KEY:
-                            dbi.delete(txn, action.getKey());
+                            dbi.delete(txn, operation.getKey());
                             break;
                         case DELETE_KEY_VALUE:
-                            dbi.delete(txn, action.getKey(), action.getVal());
+                            dbi.delete(txn, operation.getKey(), operation.getVal());
                             break;
                         case PUT:
-                            dbi.put(txn, action.getKey(), action.getVal());
+                            dbi.put(txn, operation.getKey(), operation.getVal());
                             break;
                         case DROP:
                             dbi.drop(txn);
@@ -86,15 +86,14 @@ public class LMDbXAResource implements XAResource {
             txn.commit();
             xids.remove(xid);
         } catch (Exception e) {
-            throw new XAException("Exception on commit: " + e.getMessage());
+            throw new XAException(XAException.XAER_RMERR);
         }
-        tmFlag = -1;
+        tmFlag = XAException.XAER_RMERR;
         associatedTransaction = null;
     }
 
     /*
-    Global transactions are disassociated from the resource via the
-    XAResource.end method.
+    Global transactions are disassociated from the resource via the XAResource.end method.
      */
     @Override
     public void end(Xid xid, int i) throws XAException {
@@ -108,10 +107,13 @@ public class LMDbXAResource implements XAResource {
         } else if (i == TMSUCCESS) {
             log.finest("XA TMSUCCESS");
         } else {
-            throw new XAException("Unknown XA resource flag: " + i);
+            throw new XAException(XAException.XAER_NOTA);
         }
     }
 
+    /*
+    discard knowledge of a prepared transaction
+     */
     @Override
     public void forget(Xid xid) throws XAException {
         log.finest("XA forget()");
@@ -122,9 +124,9 @@ public class LMDbXAResource implements XAResource {
             txn.commit();
             xids.remove(xid);
         } catch (Exception e) {
-            throw new XAException("Error on forget: " + e.getMessage());
+            throw new XAException(XAException.XAER_RMERR);
         }
-        tmFlag = -1;
+        tmFlag = XAException.XAER_NOTA;
     }
 
     @Override
@@ -143,18 +145,44 @@ public class LMDbXAResource implements XAResource {
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException {
         log.finest("XA isSameRM()");
-        if(xaResource instanceof LMDbXAResource) {
-            return managedConnection.getCxRequestInfo().equals(((LMDbXAResource)xaResource).managedConnection.getCxRequestInfo());
+        if (xaResource instanceof LMDbXAResource) {
+            return managedConnection.getCxRequestInfo().equals(((LMDbXAResource) xaResource).managedConnection.getCxRequestInfo());
         } else {
             return false;
         }
     }
+    /*
+    LMDB reserve can only hold a pointer to reserved space within a dbi until the next update or transaction end.
+    Since a XAResource can be involved with different global transactions, there is no way to guarantee to hold
+    and record all the resources necessary to commit the branch.
+    A viable check consists of evaluating if there is enough remaining space on put within the environment.
+    Determining database usage seems not to work on windows!
+     */
 
     @Override
     public int prepare(Xid xid) throws XAException {
         log.finest("XA prepare()");
-        // get txn
-        return 0;
+        return XA_OK;
+//        Dbi<ByteBuffer> dbi = managedConnection.getOperations().getDbi();
+//        Dbi<ByteBuffer> dbiTxn = managedConnection.getOperationsTxn().getDbi();
+//        long bytesRequired = 0L;
+//        try (Txn<ByteBuffer> txn = managedConnection.getReadTransaction()) {
+//            ByteBuffer key = LMDbUtil.toByteBuffer(xid);
+//            try (CursorIterator<ByteBuffer> cursorIterator = dbiTxn.iterate(txn, key, CursorIterator.IteratorType.FORWARD)) {
+//                while (cursorIterator.hasNext()) {
+//                    CursorIterator.KeyVal<ByteBuffer> keyVal = cursorIterator.next();
+//                    LMDbOperation operation = LMDbUtil.toObject(keyVal.val(), LMDbOperation.class);
+//                    if(LMDbOperationType.PUT == operation.getAction()) {
+//                        bytesRequired = bytesRequired + operation.getKey().remaining();
+//                        bytesRequired = bytesRequired + operation.getVal().remaining();
+//                    }
+//                }
+//            }
+//        }
+//        if(managedConnection.hasRemainingEnvironmentSpace(bytesRequired)) {
+//            return XA_OK;
+//        }
+//        throw new XAException(XAException.XAER_RMERR);
     }
 
     @Override
@@ -170,7 +198,7 @@ public class LMDbXAResource implements XAResource {
     @Override
     public void rollback(Xid xid) throws XAException {
         log.finest("XA rollback()");
-        tmFlag = -1;
+        //tmFlag = -1;
     }
 
     @Override
@@ -206,8 +234,8 @@ public class LMDbXAResource implements XAResource {
             associatedTransaction = xid;
             tmFlag = i;
         } else {
-            i = -1;
-            throw new XAException("Unknown XA resource flag: " + i);
+            tmFlag = XAException.XAER_NOTA;
+            throw new XAException(XAException.XAER_NOTA);
         }
         xids.add(xid);
     }
